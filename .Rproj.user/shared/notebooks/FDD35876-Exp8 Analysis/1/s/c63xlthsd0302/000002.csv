@@ -1,0 +1,11 @@
+"0","pander(summary(Exp8data$RT_io), style = 'rmarkdown', caption = ""Summary of RT after removing Outliers"")
+"
+"1","
+
+| Min. | 1st Qu. | Median | Mean  | 3rd Qu. | Max. | NA's |
+|:----:|:-------:|:------:|:-----:|:-------:|:----:|:----:|
+| 201  |  472.4  |  548   | 565.4 |  635.8  | 1469 | 3314 |
+
+Table: Summary of RT after removing Outliers
+
+"

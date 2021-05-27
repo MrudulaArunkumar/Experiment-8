@@ -1,0 +1,26 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1621437160645.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "684225928",
+    "id" : "1D83A2C0",
+    "lastKnownWriteTime" : 1621437447,
+    "last_content_update" : 1621437447198,
+    "path" : "C:/FSU Jena_PhD/Exp8/Analysis/scripts/dataprepExp8.R",
+    "project_path" : "scripts/dataprepExp8.R",
+    "properties" : {
+        "cursorPosition" : "16,0",
+        "scrollLine" : "0",
+        "tempName" : "Untitled1"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

@@ -1,0 +1,16 @@
+library(tidyverse)
+library(plyr)
+
+dir <- setwd("C:/FSU Jena_PhD/Exp8/rawdata/Pilot Hiwi")
+
+#saving all the csv files in that directory into one variable
+allOldata <- list.files(path = dir, pattern = "*.csv")
+
+#making the file names into one list
+Exp8data <- lapply(allOldata, read_csv)
+
+#using rbind to save it al in on df
+#using rbind.fill because some columns do not exist in some datafiles, namely the "preResp.key" 
+Exp8 <- do.call(rbind.fill,Exp8data)
+
+write.csv(Exp8, file = "Exp8_hiwidataset.csv")

@@ -1,0 +1,25 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1621437420000.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "3266758039",
+    "id" : "723157F",
+    "lastKnownWriteTime" : 1621439345,
+    "last_content_update" : 1621439345838,
+    "path" : "C:/FSU Jena_PhD/Exp8/Analysis/scripts/Exp8 Analysis.Rmd",
+    "project_path" : "scripts/Exp8 Analysis.Rmd",
+    "properties" : {
+        "cursorPosition" : "43,27",
+        "scrollLine" : "33"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 4,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}

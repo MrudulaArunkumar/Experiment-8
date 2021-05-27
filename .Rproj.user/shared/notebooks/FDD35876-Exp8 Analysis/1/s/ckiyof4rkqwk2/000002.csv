@@ -1,0 +1,5 @@
+"0","#adjusting RT
+Exp8data <- separate(Exp8data, col = TargetResp.rt, into = c(""RT_Trials"", ""RT_secondary""), sep = ',')
+"
+"2","Expected 2 pieces. Additional pieces discarded in 139 rows [1070, 1092, 1099, 1130, 1154, 1161, 1167, 1172, 1177, 1182, 1190, 1193, 1211, 1214, 1226, 1231, 1236, 1239, 1244, 1250, ...]."
+"2","Expected 2 pieces. Missing pieces filled with `NA` in 28743 rows [28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, ...]."

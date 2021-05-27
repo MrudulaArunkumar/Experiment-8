@@ -1,0 +1,33 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1621438743871.000,
+    "dirty" : false,
+    "encoding" : "",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "8D9A749D",
+    "lastKnownWriteTime" : 2452526843744,
+    "last_content_update" : 1621438743871,
+    "path" : null,
+    "project_path" : null,
+    "properties" : {
+        "cacheKey" : "6F8EBC06",
+        "caption" : "Exp8data",
+        "contentUrl" : "grid_resource/gridviewer.html?env=&obj=Exp8data&cache_key=6F8EBC06",
+        "displayedObservations" : "964",
+        "environment" : "",
+        "expression" : "Exp8data",
+        "object" : "Exp8data",
+        "preview" : "0",
+        "totalObservations" : "964",
+        "variables" : "110"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 7,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_dataframe"
+}
