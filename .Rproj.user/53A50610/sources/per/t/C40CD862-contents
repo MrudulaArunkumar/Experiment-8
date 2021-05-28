@@ -16,7 +16,7 @@ output:
     toc: yes
 ---
 
-**This document contains the result memo of Experiment 8 aimed to disentangle the awareness/insight factor and the retrieval effects. We found from out previous experiment *Exp7 Analysis.rmd" that overshadowing was present but this seemed to be driven by the nudges that participants received as those with awareness showed the effect. While looking at it from an SRB level and previous occurence, it did not moderate the interaction. But this is also tricky because the design of the previous experiment had test and learn trials intermixed that also visually looked different. So with this experiment, it builds on from the success of overshadowing in the last experiment by using only learn-like displays but testing overshadowing by manipulating the presence/absence of the salient or nonsalient distractor, similar to how it looked in the guessing learn trials of the previous experiment. So this will use the terms "MultipleD" to indicate the compound learn trials display and "SingleD" to mark the ones where one of the distractors is present. There will also be no guessing trials in between, and participants will only be asked at the end of the experiment. Given that they all look similar this experiment work can disentangle the role of inisght and provide more scope to explore retrieval effects.**
+**This document contains the result memo of Experiment 8 aimed to disentangle the awareness/insight factor and the retrieval effects. We found from out previous experiment *Exp7 Analysis.rmd* that overshadowing was present but this seemed to be driven by the nudges that participants received as those with awareness showed the effect. While looking at it from an SRB level and previous occurence, it did not moderate the interaction. But this is also tricky because the design of the previous experiment had test and learn trials intermixed that also visually looked different. So with this experiment, it builds on from the success of overshadowing in the last experiment by using only learn-like displays but testing overshadowing by manipulating the presence/absence of the salient or nonsalient distractor, similar to how it looked in the guessing learn trials of the previous experiment. So this will use the terms "MultipleD" to indicate the compound learn trials display and "SingleD" to mark the ones where one of the distractors is present. There will also be no guessing trials in between, and participants will only be asked at the end of the experiment. Given that they all look similar this experiment work can disentangle the role of inisght and provide more scope to explore retrieval effects.**
 
 ```{r loadlibs, include=FALSE, message=FALSE}
 
@@ -48,21 +48,10 @@ table(Exp8data$participant)
 Below is the overview of the experiment trials.
 
 ```{r image, echo=FALSE, out.width="100%", fig.align = 'center'}
-knitr::include_graphics(here("Figures","Trialcount.png"))
+knitr::include_graphics(here("Figures","Trial Count.png"))
+knitr::include_graphics(here("Figures","Experiment flow.png"))
 ```
 
-Here are the sample trial displays
-
--   Example Learn Trial with G as a salient letter and X as a non salient pair
--   Example test display with salient distractor
--   Example test display with nonsalient distractor
--   The target is an odd/even number appearing at the centre.
-
-```{r trials, echo=FALSE,fig.show="hold", out.width="30%"}
-include_graphics(here("Figures","G learn.png"))
-include_graphics(here("Figures","G test.png"))
-include_graphics(here("Figures","X test trial.png"))
-```
 
 # Data preparation and cleaning
 
@@ -135,7 +124,7 @@ pander(round(table(Exp8data$ACC_trials)/nrow(Exp8data)*100, digits = 3), style =
 
 Upon implementing the exclusion criteria
 
--   Outliers (1.5x above third quartile) --rm> used for the analysis
+-   Outliers (1.5x above third quartile) --\> used for the analysis
 -   Farouts (3x)above third quartile)
 -   very Fast RTs, less than 200ms
 
@@ -173,26 +162,17 @@ pander(summary(Exp8data$RT_io), style = 'rmarkdown', caption = "Summary of RT af
 
 # ANALYSES
 
-## EXPERIMENT DESIGN
-
-```{r flow}
-
-include_graphics(here("Figures","Experiment flow.png"))
-include_graphics(here("Figures", "Experiment design.png"))
-
-```
 
 ## 1. Validity Manipulation check - all trials
 
 > There is no validity effect seen in RTs
-
-
 
 ```{r valcheck, echo=FALSE,message=FALSE,results='asis'}
 ##creating an aggregate to check for validity effect
 #Exp8multiple_agg <- aggregate(data = Exp8data, RT_ifo~participant+Validity,mean)
 
 Exp8multiple_agg_o <- aggregate(data = Exp8data, RT_io~participant+Validity,mean)
+sum(is.na(Exp8data$RT_io))
 
 #for farouts
 #pander(aggregate(data = Exp8multiple_agg, RT_ifo~Validity,mean), style = "rmarkdown", caption = "Table containing means of valid and invalid learn trials, farouts excluded")
@@ -253,9 +233,6 @@ This analysis is the main one concerning overshadowing.
 Exp8agg_fo <- aggregate(data = Exp8data, RT_ifo~participant+Validity+Saliency, subset = (Condition == "SingleD"), mean)
 
 
-
-
-
 anova_VS_fo <- ezANOVA(data = Exp8agg_fo,
                        dv = RT_ifo,
                        wid = participant,
@@ -300,8 +277,7 @@ pander(t.test(data = Exp8agg_fo, RT_ifo~Validity, subset = (Saliency == "Salient
 
 2.  Outliers:
 
-The validity effect is not significant, $F = 0.01, p = 0.9$, however the main effect of saliency is significant at $ p = 0.04$. But the interaction between validity and saliency is also not significant.
-One thing to note in thie scenario is that the total number of valid and invalid trials are wiht a 90:10 ratio, which leads to less data points for invalid trials and all the more likely to miss more since invalid trials are more error-prone leading to NA RTs.
+The validity effect is not significant, $F = 0.01, p = 0.9$, however the main effect of saliency is significant at \$ p = 0.04\$. But the interaction between validity and saliency is also not significant. One thing to note in thie scenario is that the total number of valid and invalid trials are wiht a 90:10 ratio, which leads to less data points for invalid trials and all the more likely to miss more since invalid trials are more error-prone leading to NA RTs.
 
 ```{r interactiono, warning=FALSE, message=FALSE, results='asis'}
 ##for outliers
@@ -329,7 +305,7 @@ stdInteraction_o
 
 ```
 
-Here is a closer look at the effects, showing the mean difference between valid and invalid in each condition. T tests show that the difference is significant for salient trials and not significant for nonsalient trials
+Here is a closer look at the effects, showing the mean difference between valid and invalid in each condition. The effects are not significant for both the salient and nonsalient trials.
 
 ```{r meandiff, echo = FALSE, warning=FALSE, results='asis'}
 
@@ -397,8 +373,8 @@ errorrateplot
 #ggsave(filename = here("Figures","ErrorRate.png"),errorrateplot,width=6,height = 4)
 
 ```
-The plot also shows the expected pattern, wherein the salient SingleD trials show a larger difference in valid and invalid trials' performances compared to the nonsalient SingleD trials.
 
+The plot also shows the expected pattern, wherein the salient SingleD trials show a larger difference in valid and invalid trials' performances compared to the nonsalient SingleD trials.
 
 **Since the results are absent in RT but present in ER,it becomes interesting to investigate this effect using a combined score**
 
@@ -425,7 +401,7 @@ Outliers
 
 The ANOVA results along with the interaction plot are shown below. The mean difference graph is also presented to have a different visualization of the effects.
 
-```{r outliersiesbis, warning=FALSE, message=FALSE,results='asis'}
+```{r outliersiesbis, echo = FALSE, warning=FALSE, message=FALSE,results='asis'}
 
 ###FOR OUTLIERS
 
@@ -478,11 +454,11 @@ valeffectIES_o
 
 2.  **with BIS as dependent variable**
 
-> There is a significant validity effect and a significant interaction between validity and saliency
+> There is a significant saliency effect and a significant interaction between validity and saliency. Validity effect is still not significant.
 
-The ANOVA and the interaction plot are shown below. *To be noted in the plot: The y axis is represented as a z score*
+The ANOVA and the interaction plot are shown below. *To be noted in the plot: The y axis is represented as a z score*. Lower the score --> better the performance.
 
-```{r BIS, warning=FALSE, message=FALSE, results='asis'}
+```{r BIS, echo=FALSE, warning=FALSE, message=FALSE, results='asis'}
 ##with BIS
 anova_t_BIS_o <- ezANOVA(data = Exp8agg_IES_o,
         dv = BIS,
@@ -504,7 +480,7 @@ BISinterplot_o
 
 ```
 
-The mean difference is also significant for both types of scores in the salient condition and not in the nonsalient condition
+The mean difference is also significant for IES and BIS in the salient condition *but also in the nonsalient* condition however it is reversed in the non salient condition.
 
 1.  **IES**
 
@@ -525,239 +501,45 @@ pander(t.test(data = Exp8agg_IES_o, BIS~Validity, subset = (Saliency == "Salient
 pander(t.test(data = Exp8agg_IES_o, BIS~Validity, subset = (Saliency == "NonSalient"), paired = TRUE), style = "rmarkdown", caption = "OUtlier:t. test result of validity effect for nonsalient trials")
 ```
 
-## 6. Previous Occurence Analysis (Distance & Response Type)
+## 6. With Awareness
 
-Computing a new column that contains the last time/number of trials ago the previous occurrence occurred.
+Here, we explore the role of insight and awareness and see if participants' ability to detect the contingencies play a role in a significant overshadowing effect. The Awareness was tested in two ways:
 
-Eg., Distance = 1 means that the last time the distractor appeared was one trial ago, Distance = 5 means the last time the Distractor appeared was 5 trials ago.
+1.  via guessing trials that were presented at the end of the experiment, with a total of 8 in number, 4 per salient letter and 4 per nonsalient.
 
-The conditions used to satisfy this last occurrence are:
+2.  Via a Questionnaire that was asked at the end of the experiment, after the trials. The questions are as follows.
 
--   Whether last trial was test/learn (*Since the trials are intermixed*)
--   Whether the Salient **OR** Non salient Distractor appeared.
--   The last occurrence was a trial that was answered correctly
+  1. Did you have an impression that an even number appeared after a particular red letter? Press 'j' for yes and 'n' for no and 't' if you do not know. 
+  
+  2.  Did you have an impression that an odd number appeared after a particular red letter? Press 'j' for yes and 'n' for no and 't' if you do not know. 
+  
+  3. What response almost always followed a red "V"? Press the relevant response key ("e" or "u") on the keyboard or press "t" if you do not know.
 
-```{r prevocc, message=FALSE, warning=FALSE}
+  4. What response almost always followed a red "G"? Press the relevant response key ("e" or "u") on the keyboard or press "t" if you do not know.
+  
+  5. What response almost always followed "L"? Press the relevant response key ("e" or "u") on the keyboard or press "t" if you do not know.
+  
+  6.What response almost always followed "X"? Press the relevant response key ("e" or "u") on the keyboard or press "t" if you do not know.
 
-Exp8data <- Exp8data%>%select(Condition, SalD,NSalD,Saliency,Validity, everything())
+### 1. Guessing trials
 
-###first is to find out the trials where the previous occurence wa the immediate previous one
-Exp8data$Distance <- NA
-Exp8data <- Exp8data%>%select(Distance,ACC_trials,everything())
-Exp8data <- Exp8data%>%
-  mutate(Distance = ifelse((lag(Condition,1)=="test" | lag(Condition,1) == "learn")& 
-              (lag(SalD,1)== SalD|lag(NSalD,1)==NSalD) &
-                            lag(participant,1)==participant &
-                            lag(ACC_trials,1)== 1, 1, Distance))
+First some data preparation to examine the performance in the awareness guessing trials.
 
-#The number of immediate previous occurences
-pander(table(Exp8data$Distance), style = 'rmarkdown', caption = "Table showing the number of immediate previous occurence")
+* Computing the accuracy total per salient(4) and nonsalient(4) conditions
 
-## Now to look at other distances of the last occurrence beyond the immediately preceding one
-lagvalue <- 2:20
+* computing the total sum and mean accuracy
 
-for(j in lagvalue){
-  Exp8data <- Exp8data %>% 
-    mutate(Distance = ifelse((lag(Condition,j)=="learn"|lag(Condition,j)=="test") &                     (lag(SalD,j)==SalD|lag(NSalD,j)==NSalD) & lag(participant,j)==participant & lag(ACC_trials,j)== 1 & is.na(Distance)==TRUE, j, Distance))
-}
+* marking participants who answered correctly for the salient letters in the guessing trials as a factor called **SalAware**. If 1, then they answered all salient trials accurately, if 0 then one or more errors
 
-pander(table(Exp8data$Distance), style = 'rmarkdown', caption = "Table showing the number of total previous occurences and how far each of them are")
 
-```
-
-### Previous Response
-
-Coding what the previous Response was, whether it was the same or different. This variable is defined as Response Type, which has two factors: Response Change(RC) and Response Repetition (RR)
-
-*To be noted: This does not equate to validity* because the SRB trials can have the combination of invalid prime and invalid probe --\> Response Repetition which is confounded by Validity. So every valid probe can have both the Response Type factors based on whether the prime is valid or invalid
-
-```{r disttype, message=FALSE, warning=FALSE}
-
-Exp8data$ResponseRel <- NA
-
-
-Exp8data <- Exp8data %>% 
-  mutate(ResponseRel = ifelse((lag(Condition,1)=="learn" | lag(Condition,1)=="test") & lag(participant,1)==participant & lag(CorrectAnswer,1)== CorrectAnswer & is.na(ResponseRel)==TRUE, "RR", ifelse((lag(Condition,1)=="learn"|lag(Condition,1)=="test") & lag(participant,1)==participant & lag(CorrectAnswer,1)!= CorrectAnswer & is.na(ResponseRel)==TRUE, "RC", ResponseRel)))
-
-
-pander(table(Exp8data$ResponseRel),style = 'rmarkdown', caption = "Total number of RRs and RCs")
-
-Exp8data <- Exp8data%>%select(ResponseRel, everything())
-
-```
-
-
-
-### Overshadowing within SRB
-
-**For more detailed analysis, check Exp8-BindingEffects analyses.html**
-
-Another variable(Overshadow SRB) can also be computed that checks for overshadowing effects within a SRB Trial. So in this case, naturally only the trials with last occurence Distance = 1 will be considered.
-
-The conditions used to determine this variable are:
-
--   Trial $n$ is a test trial and trial $n-1$ is a learn trial and prime trial is accurate.
--   Test Trial's distractor saliency = Salient and also same as the distractors presented in the prime learn trial, then the OvershadowSRB = 1
--   Test Trial's distractor saliency = Nonsalient and also same as the distractors presented in the prime learn trial, then the OvershadowSRB = 2
-
-So essentially, OvershadowSRB tells about the saliency of the test trial (replacing the Saliency factor in the main data)
-
-```{r overSRB, message=FALSE, warning=FALSE}
-Exp8data$ProbeSaliency <- NA
-
-Exp8data <- Exp8data%>%select(ProbeSaliency, everything())
-Exp8data <- Exp8data %>%
-  mutate(ProbeSaliency = ifelse((Condition == "test" & lag(Condition,1) == "learn") &
-           lag(SalD,1) == SalD & lag(participant,1)==participant & lag(ACC_trials,1)==1, 1,ProbeSaliency))
-
-Exp8data <- Exp8data %>%
-  mutate(ProbeSaliency = ifelse((Condition == "test" & lag(Condition,1) == "learn") &
-           lag(NSalD,1)==NSalD & lag(participant,1)==participant & lag(ACC_trials,1)==1 & is.na(ProbeSaliency) == TRUE,2,ProbeSaliency))
-
-
-table(Exp8data$ProbeSaliency)
-Exp8data<- Exp8data%>%select(CorrectAnswer, everything())
-##creating a dataframe that has only Binding trials preceding with learn 
-Exp8_OverSRB <- Exp8data %>%
-  subset(ProbeSaliency %in% c('1','2'))
-
-Exp8_OverSRB<- Exp8_OverSRB%>%select(CorrectAnswer, everything())
-#table(Exp8_OverSRB$ProbeSaliency,Exp8_OverSRB$ResponseRel)
-```
-
-#### ANOVA: interaction between Response Type and Saliency for binding trials
-
-Exploratory ANOVA to check how overshadowing looks at a Binding level, using Retrieval effect (ResponseRel) as the variable to check how Saliency affects retrieval.
-
-\*Aggregate file is created only using the factors of ProbeSaliency and ResponseRel, without Validity because when Validity is included it leads to more missing values and imbalanced data.
-
-> The results show a significant interaction between probe saliency and ResponseRel(repeats/changes) and a main effect of probe saliency (overshadow SRB)
-
-```{r anovaSRB, warning=FALSE, message=FALSE,results='asis'}
-
-Exp8overSRB_Agg <- aggregate(Exp8_OverSRB[,c("RT_io","ErrorRate")], by = list(participant=Exp8_OverSRB$participant,ProbeSaliency = Exp8_OverSRB$ProbeSaliency,ResponseRel = Exp8_OverSRB$ResponseRel,Validity=Exp8_OverSRB$Validity), mean, na.rm = TRUE)
-
-Exp8overSRB_Agg <- Exp8overSRB_Agg %>%
-   mutate(ProbeSaliency = ifelse(ProbeSaliency == 1, "Salient","NonSalient"))
-Exp8overSRB_Agg$ProbeSaliency <- as.factor(Exp8overSRB_Agg$ProbeSaliency)
-
-#ANOVA
-#anovaSRB <- ezANOVA(data = Exp8overSRB_Agg,
-                    # dv = RT_io,
-                    # wid = participant,
-                    # within = .(ProbeSaliency,ResponseRel,Validity),
-                    # detailed = TRUE)
-anovaSRB <- aov(RT_io~(Validity*ProbeSaliency*ResponseRel)+Error(participant/(Validity*ProbeSaliency*ResponseRel)), data = Exp8overSRB_Agg)
-pander(anovaSRB, style = 'rmarkdown', caption = "ANOVA results for binding trials with Response Type and Probe Saliency")
-
-
-srbInteraction_o <- ggplot(Exp8overSRB_Agg, aes(x=ProbeSaliency, y=RT_io,color = ResponseRel))+
-    geom_line(aes(group = ResponseRel, linetype = ResponseRel),size = 1,stat = "summary", fun = "mean",)+
-    geom_point(stat = "summary", fun = "mean", aes(shape = ResponseRel))+
-  scale_color_manual(values = c("deepskyblue4","cadetblue3"))+xlab("Probe Saliency")+theme_classic()+ylab("ReactionTime (in ms)")+ggtitle("Interaction of ResponseRelation and Saliency for Probe Trials")+facet_grid(.~Validity)
-srbInteraction_o
-#ggsave(filename = here("Figures", "SRBinter_RT.png"), srbInteraction_o)
-#ggsave(filename = here("Figures","SRBinterwithRespType.png"), srbInteraction_o)
-ggsave(filename = here("Figures","SRB3factors.png"),srbInteraction_o)
-
-pander(t.test(data =Exp8overSRB_Agg, RT_io~ResponseRel, subset = (ProbeSaliency == "Salient"),paired = TRUE), style = "rmarkdown", caption = "T test result for Retrieval effect for Salient probes")
-# 
-pander(t.test(data =Exp8overSRB_Agg, RT_io~ResponseRel, subset = (ProbeSaliency == "NonSalient"),paired = TRUE),style = "rmarkdown", caption = "T test result for Retrieval effect for NonSalient probes")
-
-
-```
-
-#### ANOVA: Interaction between validity and Saliency *without* Binding trials
-
-This analysis looks at the interaction of validity and saliency after the Stimulus repetition trials are removed.
-
-> The interaction and the main effects are not significant anymore.
-
-```{r anovawoSRB,message=FALSE,warning=FALSE}
-
-Exp8woSRB <- Exp8data %>%
-  filter(Distance != 1)
-
-Exp8woSRB_Agg <- aggregate(Exp8woSRB[,c("RT_io","ErrorRate")], by = list(participant=Exp8woSRB$participant,
-                                                                        Saliency = Exp8woSRB$Saliency, Validity = Exp8woSRB$Validity), mean, na.rm = TRUE)
-
-Exp8woSRB_Agg <- Exp8woSRB_Agg %>%
-  filter(Saliency%in%c("Salient","NonSalient"))
-
-anovaWoSRB <- ezANOVA(data = Exp8woSRB_Agg,
-                      dv = RT_io,
-                      wid = participant,
-                      within = .(Saliency,Validity),
-                      detailed = TRUE)
-panderOptions('table.split.table',300)
-pander(anovaWoSRB, style = "rmarkdown", caption = "ANOVA after removing stimulus repetition trials", split.table = "Inf", missing=NA)
-
-
-woSRBinter <- ggplot(Exp8woSRB_Agg, aes(x=Saliency, y=RT_io,color = Validity))+
-    geom_line(aes(group = Validity, linetype = Validity),size = 1,stat = "summary", fun = "mean",)+
-    geom_point(stat = "summary", fun = "mean", aes(shape = Validity))+
-  scale_color_manual(values = c("deepskyblue4","cadetblue3"))+coord_cartesian(ylim = c(550,650))+
-  theme_classic()+ylab("ReactionTime (in ms)")+ggtitle("Interaction of Validity and Saliency after removing the binding trials")
-woSRBinter
-#ggsave(filename = here("Figures","woSRBinteraction.png"),woSRBinter)
-```
-
-### Multi level model
-
-Check other memo titled "Exp8-mlm.html"
-
-# Exploratory Analyses
-
-This exploratory analysis involves the factors of contingency awareness from the guessing trials and the awareness questionnaire responses
-
-## 1. Block Analysis
-
-> There is a significant main effect of Block and the interaction between saliency and validity remains significant.
-
-The plot shows that the second block especially shows the trend as expected. But this is not significant on its own (i.e., only when second block is analyzed).
-
-```{r block, warning=FALSE, message=FALSE}
-
-Exp8data <- Exp8data %>%
-  mutate(BlockCount = ifelse(ExpTrials.thisN <= 145, 1, ifelse(ExpTrials.thisN > 145 & ExpTrials.thisN <= 295,2,NA)))
-
-Exp8agg_B_o <- aggregate(data = Exp8data, RT_io~participant+Validity+Saliency+BlockCount, subset = (Condition == "test"), mean)
-
-
-##Anova with Blocks
-anova_t_block <- ezANOVA(data = Exp8agg_B_o,
-        dv = RT_io,
-        wid = participant,
-        within = .(Saliency,Validity,BlockCount),
-        detailed = TRUE)
-panderOptions('table.split.table',300)
-pander(anova_t_block, style = 'rmarkdown', caption = "ANOVA results: with BlockCount", split.table = "Inf", missing = NA)
-
-
-interBlock <- ggplot(Exp8agg_B_o, aes(x=Saliency, y=RT_io,color = Validity))+
-    geom_line(aes(group = Validity, linetype = Validity),size = 1,stat = "summary", fun = "mean",)+
-    geom_point(stat = "summary", fun = "mean", aes(shape = Validity))+
-  scale_color_manual(values = c("deepskyblue4","cadetblue3"))+facet_grid(.~BlockCount)+
-  theme_classic()+ylab("Reaction Time in ms")+ggtitle("Interaction of Validity and Saliency per Block")
-interBlock
-
-#ggsave(filename = here("Figures","InteractionperBlock.png"), interBlock)
-
-```
-
-## 2. Contingency Awareness guessing trials
-
-These are the trials that were presented in between the experiment. First in the beginning among the learn trials and then at the end. There are a total of 20 Guessing trials: - 16 in the beginning that resembled the learn trials where 8 of them had the salient letter alone among other irrelevant blue letters and 8 had the nonsalient letter presented among the blue distractors with a randomly assigned red letter - 4 at the end that resembled the test display - One presentation each of the distractors (2 salient and 2 non salient)
-
-```{r prepCA, include=FALSE}
-
+```{r CAguess, echo=FALSE, warning=FALSE, message=FALSE}
 Exp8_CA <- Exp8_CA %>%
   select(-TargetResp_p.corr,-TargetResp_p.keys,-TargetResp_p.rt,-TargetResp.corr,-TargetResp.keys,-todebrief.rt,-Finalend.rt)
 Exp8_CA$AwareResp.corr <- as.factor(Exp8_CA$AwareResp.corr)
 Exp8_CA$AwareResp.keys <- as.character(Exp8_CA$AwareResp.keys)
 Exp8_CA$Solution <- as.character(Exp8_CA$Solution)
 
-
+#two columns stating the total accuracy of guessing trials for salient and nonsalient
 Exp8_CA$SalTotalAcc <- NA
 Exp8_CA$NonSalTotalAcc <- NA
 
@@ -776,101 +558,92 @@ CA_Summary <- Exp8_CA %>%
                   NonSalAcc = sum(NonSalTotalAcc, na.rm = TRUE))%>%
   drop_na(Condition)
 
-#CA_Summary$MeanLearnAcc <- ifelse(is.na(CA_Summary$MeantestAcc)==FALSE, CA_Summary$MeantestAcc, CA_Summary$MeanLearnAcc)
-
-#CA_Summary$LearnCA_Acc <- ifelse(CA_Summary$Condition == "test", CA_Summary$TestCA_Acc, CA_Summary$LearnCA_Acc)
-
 
 CA_Summary$MeanAcc <- 100*CA_Summary$MeanAcc
+
 CA_Summary <- CA_Summary %>%
-  mutate(allSalaware = ifelse(Saliency == "Salient"& MeanAcc == 100, 1, 0))
+  mutate(Salaware = ifelse(Saliency == "Salient"& MeanAcc == 100, 1, 0))
 
 CA_Summary$participant <- as.factor(CA_Summary$participant)
 
-pander(table(CA_Summary$allSalaware),style = "rmarkdown", caption="People with awareness of contingencies for Salient letters (1)")
+pander(table(CA_Summary$Salaware),style = "rmarkdown", caption="People with awareness of contingencies for Salient letters (1)")
 
 ```
 
 These plots show the overall accuracy of the participants in the guessing trials that were spread across the experiment.
 
-The plot shows that in the Guess trials resembling Learn trials- most participants seemed to be scoring better for the Salient trials compared to the non salient. Similarly in the test trial condition, salient trials seemed to have larger proportion of participants answering accurately than non salient.
+The plot shows that in the Guess trials most participants seemed to be scoring better for the Salient trials compared to the non salient.
 
 ```{r CA plot, echo=FALSE, message=FALSE, warning=FALSE}
 
-ggplot(CA_Summary, aes(x = Saliency))+
+CAplot <- ggplot(CA_Summary, aes(x = Saliency))+
   geom_violin(aes(x= Saliency,y=TotalAcc,fill=Saliency),alpha = 0.5)+
   geom_jitter(aes(x= Saliency, y = TotalAcc,color=Saliency))+
   stat_summary(aes(y = TotalAcc, group = Condition), fun.y=mean, geom="line", colour="black")+
 #  geom_hline(aes(yintercept = mean(TotalAcc), group = Saliency))+
- facet_grid(.~Condition)+scale_fill_manual(values = c("steelblue4","red4"))+scale_color_manual(values = c("steelblue4","red4"))+theme_classic()+
-  ggtitle("Summary of Contingency Awareness scores \n split by Salient or non salient trial across conditions")
+ scale_fill_manual(values = c("steelblue4","red4"))+scale_color_manual(values = c("steelblue4","red4"))+theme_classic()+
+  ggtitle("Summary of Contingency Awareness scores \n split by Salient or non salient trial")
+CAplot
+
+#ggsave(filename = here("Figures","GuessingAccuracy.png"),CAplot)
+
 ```
 
 
+### 2. Awareness Questionnaire
 
-The difference between Accuracy of Guessing trials in the learn trials are as follows:
-
-1.  For the Guessing trials in the learn block, the accuracy significantly differs between saliency
-2.  For the Guessing trials at the end of the experiment resembling test trials, they do not differ significantly but almost $p = 0.07$ *two-sided*.
-
-```{r}
-pander(t.test(data = CA_Summary, TotalAcc~Saliency,subset = (Condition == "LearnGuess"),paired = TRUE), style = "rmarkdown", caption = "t.test comparing scores between salient and nonsalient guessing learn trials")
-
-pander(t.test(data = CA_Summary, TotalAcc~Saliency,subset = (Condition == "test"),paired = TRUE), style = "rmarkdown", caption = "t.test comparing scores between salient and nonsalient guessing learn trials")
-```
+Here, a summary dataframe is created only with the performances of the participants from the 6 questions mentioned above.
 
 
-## 3. Awareness Questionnaire
+* The variable *SalQAcc* is created to check for which of the salient letter related questions did the participants answer accurately
+  
+  * The variable *TotalSalQAcc* tells what is the total score of accuracy for those salient related questions. 
+  
+* If participants answered both the salient letter related questions accuractely (*i.e., if TotalSalQAcc  = 2*) then *SalQAware* is created that denotes that the participants were aware at the questionnaire level.
 
-The accuracy for the questions related to the salient letter are aggregated and given an overall score of 1 if they answered both the questions right and 0 if one or both are wrong.
+> 28 people show awareness in terms of answering the salient questions accurately.
 
-For each trial however if they answered correctly, accuracy is marked as 2 and 1 indicates that either they responded incorrectly or do not know.
-
-> 53 people have awareness of contingency for both the salient letters
-
-```{r awareprep, include=FALSE}
+```{r awareprep, echo=FALSE, warning=FALSE, message=FALSE}
 Exp8_CA$AwareResp.corr <- as.numeric(Exp8_CA$AwareResp.corr)
-AWarepp <- aggregate(data = Exp8_CA, AwareResp.corr~participant+AwareQ_loop.thisN+AwareQ,mean)
-AWarepp$Dicho <- ifelse(AWarepp$AwareQ_loop.thisN == "2" & AWarepp$AwareResp.corr == 2 | AWarepp$AwareQ_loop.thisN == "3" & AWarepp$AwareResp.corr== 2,1,0)
 
-pander(table(AWarepp$AwareQ,AWarepp$AwareResp.corr), style = "rmarkdown", title = "Question number and the number of participants answering accurately (1) or not (0)")
-# table(AWarepp$Dicho)
+#creating a dataframe dealing with the performance of Awareness Questionnaire.
+AwareQ <- aggregate(data = Exp8_CA, AwareResp.corr~participant+AwareQ_loop.thisN+AwareQ+AwareResp.keys+Solution,mean)
 
-A_Summary <- AWarepp %>%
+AwareQ$SalQAcc <- ifelse(AwareQ$AwareQ_loop.thisN == "2" & AwareQ$AwareResp.corr == 2 | AwareQ$AwareQ_loop.thisN == "3" & AwareQ$AwareResp.corr== 2,1,0)
+
+pander(table(AwareQ$AwareQ,AwareQ$AwareResp.corr), style = "rmarkdown", title = "Question number and the number of participants answering accurately (1) or not (0)")
+# table(AwareQ_Summary$Dicho)
+
+A_Summary <- AwareQ %>%
   dplyr::group_by(participant) %>%
-  dplyr::summarise(SaliencyAware = sum(Dicho, na.rm=TRUE))%>%
-  filter(participant != 10)
+  dplyr::summarise(TotalSalQAcc = sum(SalQAcc, na.rm=TRUE))
 
-A_Summary$AwareQSal <- ifelse(A_Summary$SaliencyAware == "2" ,1,0)
-pander(table(A_Summary$AwareQSal), style = "rmarkdown", caption = "Number of participants with awareness(1) from the questionnaire")
+
+A_Summary$SalQAware <- ifelse(A_Summary$TotalSalQAcc == "2" ,1,0)
+pander(table(A_Summary$SalQAware), style = "rmarkdown", caption = "Number of participants with awareness(1) from the questionnaire")
 ```
 
-## 4.  Using level of awareness in guessing and question trials as a factor
+### 3. Combining both measures of awareness: guessing trials and questions
 
-Now, let's focus only on the Salient guessing trials as well as questions. Given that the learn guessing trials are the main driving force in creating insight, a variable is created that is a factor of learnAwareness from guessing trials. So using median split, all the participans with more than 50% accuracy in the guessing learn trials are labelled as **"Learn Aware"** and the others are marked as **"Learn Unaware"**.
+Now, let's focus only on the Salient guessing trials as well as questions. So using median split, all the participants with more than 50% accuracy in the guessing learn trials are labelled as **"Aware"** and the others are marked as **"Notaware"**.
 
 This is then compared with the participants' responses in the Questionnaire at the end of the experiment and checked if it matches with their guessing trials' performance.
 
-
-```{r message=FALSE, warning=FALSE}
+```{r bothaware, echo=FALSE, message=FALSE, warning=FALSE}
 
 #if learnguess salient is high label those participants as learnAware. To be used to check if they correlate with the AwareQ responses of those participants
 CA_Summary <- CA_Summary %>%
-  mutate(SalAwareness = ifelse(Saliency == "Salient" & MeanAcc > 50, "Aware", "Notaware"))
+  mutate(SalAwarenessMS = ifelse(Saliency == "Salient" & MeanAcc > 50, "Aware", "Notaware"))
 pander((table(CA_Summary$SalAwareness)),style = "rmarkdown")
-Exp8agg_A_o <- merge(Exp8agg_o,CA_Summary,by="participant")
+Exp8agg_A_o <- merge(Exp8agg_o, CA_Summary, by = "participant")
 #creating df that contains both performances
 BothAware <- CA_Summary%>%filter(Saliency == "Salient")
 BothAware <- merge(BothAware, A_Summary, by = "participant")
 
 plotaware <- BothAware %>%
-  select(c("participant", "TotalAcc","MeanAcc", "SalAwareness","SaliencyAware","AwareQSal"))
+  select(c("participant", "TotalAcc","MeanAcc", "SalAwarenessMS","Salaware","SalQAware"))
 
-plotaware <- plotaware %>%
-  dplyr::rename(SaliencyGuessAwareness = SalAwareness,
-                SaliencyAwareQuestion = SaliencyAware,
-                BothSalAwareQ = AwareQSal)
-
+# Exp8agg_A_o <- merge(Exp8agg_o,CA_Summary,by="participant")
 ```
 
 The table below shows the performances in each of the awareness tasks (guessing trials and questionnaire)
@@ -882,48 +655,37 @@ pander(plotaware, caption = "Showing the participants' Guessing trial and awaren
 
 ### Using Awareness factors to the main aggregate df and evaluating the influence of insight in the interaction of validity and saliency
 
-#### 1. Combining the awareness at the continginecy guessing trial level as well as the Questionnaire
 
 To further evaluate how this awareness knowledge influences the interaction, a new factor was created *AwarenessMatch* that states the level of awareness the participant had and contains 4 factors:
 
-1. Complete Awareness: They scored higher than chance in the guessing trials and answered both the awareness questions related to Salient distractors accurately.
+1.  Complete Awareness: They scored higher than chance in the guessing trials and answered both the awareness questions related to Salient distractors accurately.
 
-2. Guess Awareness Not question: Show higher accuracy in guess salient trials but did not answer it accurately in the questionnaire
+2.  Guess Awareness Not question: Show higher accuracy in guess salient trials but did not answer it accurately in the questionnaire
 
-3. QuestionAwareness Not guess: Answered the salient distractor questions accurately but scored below chance level in the guess trials
+3.  QuestionAwareness Not guess: Answered the salient distractor questions accurately but scored below chance level in the guess trials
 
-4. No awareness: Did not have higher accuracy in the learn guess trials and no accuracy in the salient questions.
+4.  No awareness: Did not have higher accuracy in the learn guess trials and no accuracy in the salient questions.
 
-
-```{r }
+```{r awarefactor, echo=FALSE, message=FALSE, warning=FALSE}
 ##selecting pps who show both awareness in trials and questions
 
-
-Exp8agg_A_o <- merge(Exp8agg_A_o,A_Summary, merge = "participant")
+Exp8agg_A_o <- merge(Exp8agg_A_o,A_Summary,by = "participant")
 Exp8agg_A_o <- Exp8agg_A_o%>%
-  dplyr::rename(SalientGuessTrials = SalAwareness,
-                SaliencyAwareQuestion = SaliencyAware,
-                BothSalAwareQ = AwareQSal)
+  dplyr::rename(SalientGuessTrials = SalAwarenessMS,
+                SaliencyAwareQuestion = SalQAware)
 Exp8agg_A_o <- Exp8agg_A_o %>%
-  mutate(AwarenessMatch = ifelse(SalientGuessTrials == "Aware" & BothSalAwareQ == 1, "CompleteAwareness", 
-                                 ifelse(SalientGuessTrials == "Aware" & BothSalAwareQ == 0,"GuessAwareness Not Question",
-                                        ifelse(SalientGuessTrials == "Notaware" & BothSalAwareQ == 1, "QuestionAwareness Not guess",
-                                               ifelse(SalientGuessTrials == "Notaware" & BothSalAwareQ == 0,"NoAwareness",NA)))))
+  mutate(AwarenessMatch = ifelse(SalientGuessTrials == "Aware" & SaliencyAwareQuestion == 1, "CompleteAwareness", 
+                                 ifelse(SalientGuessTrials == "Aware" & SaliencyAwareQuestion == 0,"GuessAwareness Not Question",
+                                        ifelse(SalientGuessTrials == "Notaware" & SaliencyAwareQuestion == 1, "QuestionAwareness Not guess",
+                                               ifelse(SalientGuessTrials == "Notaware" & SaliencyAwareQuestion == 0,"NoAwareness",NA)))))
 
+```
 
-##### OLD FACTORS THAT WERE USED #####
-# Exp8agg_A_o <- Exp8agg_A_o %>%
-#   mutate(GuessSplit = ifelse(TotalAcc > 50, "high","low"))
-# 
-# Exp8agg_A_o <- Exp8agg_A_o %>%
-#   group_by(participant)%>%
-#   mutate(Awarelevel = ifelse(mean(TotalAcc) > 50, "Aware","less Aware"))
-# 
-# Exp8agg_A_o <- Exp8agg_A_o %>%
-#   group_by(participant)%>%
-#   mutate(LSAware = ifelse((Condition == "LearnGuess" & Saliency == "Saliency" & TotalAcc > 75), "Aware","UnAware"))
-#table(Exp8agg_A_o$LAware)/16 #around 21 people with 100% Acc and 49 people without
+### 4. ANOVA using AwarenessMatch as a factor
 
+There is a main effect of saliency $F = 7.72, p = .006$ and a significant interaction between saliency and validity $F = 7.313, p = .008$. Interestingly there is also a significant 3-way interaction with awareness and saliency and validity $F = 10.69, p < .001$ which was absent in Experiment 7. 
+
+```{r awareanova, echo=FALSE, warning=FALSE, message=FALSE}
 
 anova_VSA_o <- ezANOVA(data = Exp8agg_A_o,
         dv = RT_io,
@@ -945,6 +707,9 @@ awareInterG
 #ggsave(filename = here("Figures","InteractionwithBothawareness.png"),awareInterG)
 ```
 
+
+The plot shows the different interaction pattern per awareness condition. When participants show complete awareness both in the questionnaire as well guessing trials then it is the perfect pattern of larger validity effect for salient compared to nonsalient.
+
 ```{r}
 mean_valEffectA_o <- ezStats(data = Exp8agg_A_o,
         dv = RT_io,
@@ -955,29 +720,28 @@ mean_valEffectA_o <- ezStats(data = Exp8agg_A_o,
         between = .(AwarenessMatch),
         reverse_diff = TRUE)
 
+pander(mean_valEffectA_o, style = "rmarkdown", caption = "Validity Effect for salient and nonsalient distractors in all groups of awareness")
 
-pander(t.test(data = Exp8agg_A_o, RT_io~Validity, subset = (Saliency.x == "Salient" & AwarenessMatch == "CompleteAwareness"), paired = TRUE), style = "rmarkdown", caption = "t test for validity effect for salient trials for pp with full awareness")
-
-pander(t.test(data = Exp8agg_A_o, RT_io~Validity, subset = (Saliency.x == "Salient" & AwarenessMatch == "GuessAwareness Not Question"), paired = TRUE), style = "rmarkdown", caption = "t test for validity effect for salient trials for pp with partial awareness(only trials)")
-
-pander(t.test(data = Exp8agg_A_o, RT_io~Validity, subset = (Saliency.x == "Salient" & AwarenessMatch == "QuestionAwareness Not guess"), paired = TRUE), style = "rmarkdown", caption = "t test for validity effect for salient trials for pp with partial awareness(only question)")
-
-pander(t.test(data = Exp8agg_A_o, RT_io~Validity, subset = (Saliency.x == "Salient" & AwarenessMatch == "NoAwareness"), paired = TRUE), style = "rmarkdown", caption = "t test for validity effect for salient trials for pp with no awareness")
 ```
 
 
 
-The plot shows that when the participants have complete awareness there seems to be an interaction.
+```{r ttestaware, eval=FALSE}
 
-This pattern of interaction is also present for the participants with awareness at the questionnaire level but not at the contingency guessing level. Maybe this could be due to the fact that the questionnaire is presented at the end of the experiment which allowed for better insight.
+# pander(t.test(data = Exp8agg_A_o, RT_io~Validity, subset = (Saliency.x == "Salient" & AwarenessMatch == "CompleteAwareness"), paired = TRUE), style = "rmarkdown", caption = "t test for validity effect for salient trials for pp with full awareness")
+# 
+# pander(t.test(data = Exp8agg_A_o, RT_io~Validity, subset = (Saliency.x == "Salient" & AwarenessMatch == "GuessAwareness Not Question"), paired = TRUE), style = "rmarkdown", caption = "t test for validity effect for salient trials for pp with partial awareness(only trials)")
+# 
+# pander(t.test(data = Exp8agg_A_o, RT_io~Validity, subset = (Saliency.x == "Salient" & AwarenessMatch == "QuestionAwareness Not guess"), paired = TRUE), style = "rmarkdown", caption = "t test for validity effect for salient trials for pp with partial awareness(only question)")
+# 
+# pander(t.test(data = Exp8agg_A_o, RT_io~Validity, subset = (Saliency.x == "Salient" & AwarenessMatch == "NoAwareness"), paired = TRUE), style = "rmarkdown", caption = "t test for validity effect for salient trials for pp with no awareness")
+```
 
-The pattern is absent in participants who show no awareness and those with awareness only at the guessing trials levels show a pattern wherein the validity effect is larger in nonsalient (~23ms) compared to salient (~12ms).
 
 
+### 5. Only using awareness level at the questionnaire level
 
-#### 2. Only using awareness level at the questionnaire level
-
-This variable (AwareQSal) is then included as a factor in the main aggregate df containing the validity and saliency effect for test trials. There is a significant interaction between validity and saliency similar to the standard analysis. While splitting the data for people with and without awareness, the people with awareness show a significant interaction between validity and saliency and those without awareness do not show any effect.
+This variable (*SalQAWare*) is then included as a factor in the main aggregate df containing the validity and saliency effect for test trials. There is a significant interaction between validity and saliency similar to the standard analysis. While splitting the data for people with and without awareness, the people with awareness show a significant interaction between validity and saliency and those without awareness do not show any effect.
 
 ```{r awareanalysis, include=FALSE, warning=FALSE, message=FALSE}
 # Exp8agg_A_fo <- merge(Exp8agg_fo,A_Summary,by="participant")
@@ -989,12 +753,12 @@ Exp8agg_AQ_o <- merge(Exp8agg_o,A_Summary,by="participant")
 
 ##for outliers
 
-Exp8agg_AQ_o$AwareQSal <- as.factor(Exp8agg_AQ_o$AwareQSal)
+Exp8agg_AQ_o$SalQAware <- as.factor(Exp8agg_AQ_o$SalQAware)
 anova_VSAq_o <- ezANOVA(data = Exp8agg_AQ_o,
         dv = RT_io,
         wid = participant,
         within = .(Saliency,Validity),
-        between = .(AwareQSal),
+        between = (SalQAware),
         detailed = TRUE)
 
 pander(anova_VSAq_o, style = 'rmarkdown', caption = "ANOVA results with awareness: Outliers excluded",split.table = "Inf", missing = NA)
@@ -1003,21 +767,238 @@ pander(anova_VSAq_o, style = 'rmarkdown', caption = "ANOVA results with awarenes
 awareQInter <- ggplot(Exp8agg_AQ_o, aes(x=Saliency, y=RT_io,color = Validity))+
     geom_line(aes(group = Validity, linetype = Validity),size = 1,stat = "summary", fun = "mean",)+
     geom_point(stat = "summary", fun = "mean", aes(shape = Validity))+
-  scale_color_manual(values = c("deepskyblue4","cadetblue3"))+facet_grid(.~AwareQSal)+coord_cartesian(ylim = c(550,650))+
+  scale_color_manual(values = c("deepskyblue4","cadetblue3"))+facet_grid(.~SalQAware)+coord_cartesian(ylim = c(500,600))+
   theme_classic()+ylab("Reaction Time in ms")+ggtitle("Interaction of Validity and Saliency \n between participants with and without awareness")
 awareQInter
 
-ggsave(filename = here("Figures","interactionbwAwareness_Questions.png"),awareQInter)
+#ggsave(filename = here("Figures","interactionbwAwareness_Questions.png"),awareQInter)
 
-mean_aware_o <- ezStats(data = Exp8agg_AQ_o,
+mean_awareQ_o <- ezStats(data = Exp8agg_AQ_o,
         dv = RT_io,
         wid = participant,
         within_full = .(Saliency,Validity),
         within = .(Saliency),
-        between = .(AwareQSal),
+        between = .(SalQAware),
         diff=.(Validity),
         reverse_diff = TRUE)
 
-pander(mean_aware_o, style = "rmarkdown", title = "Validity effect(invalid-valid) (outliers excluded) for participants with contingency awareness of salient letters")
+pander(mean_awareQ_o, style = "rmarkdown", title = "Validity effect(invalid-valid) (outliers excluded) for participants with contingency awareness of salient letters")
 
 ```
+
+# MULTI LEVEL MODELLING
+
+## 7. Previous Occurence Analysis (Distance & Response Type)
+
+Computing a new column that contains the last time/number of trials ago the previous occurrence occurred.
+
+Eg., Distance = 1 means that the last time the distractor appeared was one trial ago, Distance = 5 means the last time the Distractor appeared was 5 trials ago.
+
+The conditions used to satisfy this last occurrence are:
+
+-   Whether last trial was test/learn (*Since the trials are intermixed*)
+-   Whether the Salient **OR** Non salient Distractor appeared.
+-   The last occurrence was a trial that was answered correctly
+
+```{r prevocc, eval = FALSE, message=FALSE, warning=FALSE}
+
+# Exp8data <- Exp8data%>%select(Condition, SalD,NSalD,Saliency,Validity, everything())
+# 
+# ###first is to find out the trials where the previous occurence wa the immediate previous one
+# Exp8data$Distance <- NA
+# Exp8data <- Exp8data%>%select(Distance,ACC_trials,everything())
+# Exp8data <- Exp8data%>%
+#   mutate(Distance = ifelse((lag(Condition,1)=="test" | lag(Condition,1) == "learn")& 
+#               (lag(SalD,1)== SalD|lag(NSalD,1)==NSalD) &
+#                             lag(participant,1)==participant &
+#                             lag(ACC_trials,1)== 1, 1, Distance))
+# 
+# #The number of immediate previous occurences
+# pander(table(Exp8data$Distance), style = 'rmarkdown', caption = "Table showing the number of immediate previous occurence")
+# 
+# ## Now to look at other distances of the last occurrence beyond the immediately preceding one
+# lagvalue <- 2:20
+# 
+# for(j in lagvalue){
+#   Exp8data <- Exp8data %>% 
+#     mutate(Distance = ifelse((lag(Condition,j)=="learn"|lag(Condition,j)=="test") &                     (lag(SalD,j)==SalD|lag(NSalD,j)==NSalD) & lag(participant,j)==participant & lag(ACC_trials,j)== 1 & is.na(Distance)==TRUE, j, Distance))
+# }
+# 
+# pander(table(Exp8data$Distance), style = 'rmarkdown', caption = "Table showing the number of total previous occurences and how far each of them are")
+
+```
+
+### Previous Response
+
+Coding what the previous Response was, whether it was the same or different. This variable is defined as Response Type, which has two factors: Response Change(RC) and Response Repetition (RR)
+
+*To be noted: This does not equate to validity* because the SRB trials can have the combination of invalid prime and invalid probe --\> Response Repetition which is confounded by Validity. So every valid probe can have both the Response Type factors based on whether the prime is valid or invalid
+
+```{r disttype, eval=FALSE, message=FALSE, warning=FALSE}
+
+# Exp8data$ResponseRel <- NA
+# 
+# 
+# Exp8data <- Exp8data %>% 
+#   mutate(ResponseRel = ifelse((lag(Condition,1)=="learn" | lag(Condition,1)=="test") & lag(participant,1)==participant & lag(CorrectAnswer,1)== CorrectAnswer & is.na(ResponseRel)==TRUE, "RR", ifelse((lag(Condition,1)=="learn"|lag(Condition,1)=="test") & lag(participant,1)==participant & lag(CorrectAnswer,1)!= CorrectAnswer & is.na(ResponseRel)==TRUE, "RC", ResponseRel)))
+# 
+# 
+# pander(table(Exp8data$ResponseRel),style = 'rmarkdown', caption = "Total number of RRs and RCs")
+# 
+# Exp8data <- Exp8data%>%select(ResponseRel, everything())
+
+```
+
+### Overshadowing within SRB
+
+**For more detailed analysis, check Exp8-BindingEffects analyses.html**
+
+Another variable(Overshadow SRB) can also be computed that checks for overshadowing effects within a SRB Trial. So in this case, naturally only the trials with last occurence Distance = 1 will be considered.
+
+The conditions used to determine this variable are:
+
+-   Trial $n$ is a test trial and trial $n-1$ is a learn trial and prime trial is accurate.
+-   Test Trial's distractor saliency = Salient and also same as the distractors presented in the prime learn trial, then the OvershadowSRB = 1
+-   Test Trial's distractor saliency = Nonsalient and also same as the distractors presented in the prime learn trial, then the OvershadowSRB = 2
+
+So essentially, OvershadowSRB tells about the saliency of the test trial (replacing the Saliency factor in the main data)
+
+```{r overSRB, eval = FALSE,message=FALSE, warning=FALSE}
+# Exp8data$ProbeSaliency <- NA
+# 
+# Exp8data <- Exp8data%>%select(ProbeSaliency, everything())
+# Exp8data <- Exp8data %>%
+#   mutate(ProbeSaliency = ifelse((Condition == "test" & lag(Condition,1) == "learn") &
+#            lag(SalD,1) == SalD & lag(participant,1)==participant & lag(ACC_trials,1)==1, 1,ProbeSaliency))
+# 
+# Exp8data <- Exp8data %>%
+#   mutate(ProbeSaliency = ifelse((Condition == "test" & lag(Condition,1) == "learn") &
+#            lag(NSalD,1)==NSalD & lag(participant,1)==participant & lag(ACC_trials,1)==1 & is.na(ProbeSaliency) == TRUE,2,ProbeSaliency))
+# 
+# 
+# table(Exp8data$ProbeSaliency)
+# Exp8data<- Exp8data%>%select(CorrectAnswer, everything())
+# ##creating a dataframe that has only Binding trials preceding with learn 
+# Exp8_OverSRB <- Exp8data %>%
+#   subset(ProbeSaliency %in% c('1','2'))
+# 
+# Exp8_OverSRB<- Exp8_OverSRB%>%select(CorrectAnswer, everything())
+# #table(Exp8_OverSRB$ProbeSaliency,Exp8_OverSRB$ResponseRel)
+```
+
+#### ANOVA: interaction between Response Type and Saliency for binding trials
+
+Exploratory ANOVA to check how overshadowing looks at a Binding level, using Retrieval effect (ResponseRel) as the variable to check how Saliency affects retrieval.
+
+\*Aggregate file is created only using the factors of ProbeSaliency and ResponseRel, without Validity because when Validity is included it leads to more missing values and imbalanced data.
+
+> The results show a significant interaction between probe saliency and ResponseRel(repeats/changes) and a main effect of probe saliency (overshadow SRB)
+
+```{r anovaSRB, warning=FALSE, message=FALSE,results='asis'}
+# 
+# Exp8overSRB_Agg <- aggregate(Exp8_OverSRB[,c("RT_io","ErrorRate")], by = list(participant=Exp8_OverSRB$participant,ProbeSaliency = Exp8_OverSRB$ProbeSaliency,ResponseRel = Exp8_OverSRB$ResponseRel,Validity=Exp8_OverSRB$Validity), mean, na.rm = TRUE)
+# 
+# Exp8overSRB_Agg <- Exp8overSRB_Agg %>%
+#    mutate(ProbeSaliency = ifelse(ProbeSaliency == 1, "Salient","NonSalient"))
+# Exp8overSRB_Agg$ProbeSaliency <- as.factor(Exp8overSRB_Agg$ProbeSaliency)
+# 
+# #ANOVA
+# #anovaSRB <- ezANOVA(data = Exp8overSRB_Agg,
+#                     # dv = RT_io,
+#                     # wid = participant,
+#                     # within = .(ProbeSaliency,ResponseRel,Validity),
+#                     # detailed = TRUE)
+# anovaSRB <- aov(RT_io~(Validity*ProbeSaliency*ResponseRel)+Error(participant/(Validity*ProbeSaliency*ResponseRel)), data = Exp8overSRB_Agg)
+# pander(anovaSRB, style = 'rmarkdown', caption = "ANOVA results for binding trials with Response Type and Probe Saliency")
+# 
+# 
+# srbInteraction_o <- ggplot(Exp8overSRB_Agg, aes(x=ProbeSaliency, y=RT_io,color = ResponseRel))+
+#     geom_line(aes(group = ResponseRel, linetype = ResponseRel),size = 1,stat = "summary", fun = "mean",)+
+#     geom_point(stat = "summary", fun = "mean", aes(shape = ResponseRel))+
+#   scale_color_manual(values = c("deepskyblue4","cadetblue3"))+xlab("Probe Saliency")+theme_classic()+ylab("ReactionTime (in ms)")+ggtitle("Interaction of ResponseRelation and Saliency for Probe Trials")+facet_grid(.~Validity)
+# srbInteraction_o
+# #ggsave(filename = here("Figures", "SRBinter_RT.png"), srbInteraction_o)
+# #ggsave(filename = here("Figures","SRBinterwithRespType.png"), srbInteraction_o)
+# ggsave(filename = here("Figures","SRB3factors.png"),srbInteraction_o)
+# 
+# pander(t.test(data =Exp8overSRB_Agg, RT_io~ResponseRel, subset = (ProbeSaliency == "Salient"),paired = TRUE), style = "rmarkdown", caption = "T test result for Retrieval effect for Salient probes")
+# # 
+# pander(t.test(data =Exp8overSRB_Agg, RT_io~ResponseRel, subset = (ProbeSaliency == "NonSalient"),paired = TRUE),style = "rmarkdown", caption = "T test result for Retrieval effect for NonSalient probes")
+
+
+```
+
+#### ANOVA: Interaction between validity and Saliency *without* Binding trials
+
+This analysis looks at the interaction of validity and saliency after the Stimulus repetition trials are removed.
+
+> The interaction and the main effects are not significant anymore.
+
+```{r anovawoSRB,message=FALSE,warning=FALSE}
+
+# Exp8woSRB <- Exp8data %>%
+#   filter(Distance != 1)
+# 
+# Exp8woSRB_Agg <- aggregate(Exp8woSRB[,c("RT_io","ErrorRate")], by = list(participant=Exp8woSRB$participant,
+#                                                                         Saliency = Exp8woSRB$Saliency, Validity = Exp8woSRB$Validity), mean, na.rm = TRUE)
+# 
+# Exp8woSRB_Agg <- Exp8woSRB_Agg %>%
+#   filter(Saliency%in%c("Salient","NonSalient"))
+# 
+# anovaWoSRB <- ezANOVA(data = Exp8woSRB_Agg,
+#                       dv = RT_io,
+#                       wid = participant,
+#                       within = .(Saliency,Validity),
+#                       detailed = TRUE)
+# panderOptions('table.split.table',300)
+# pander(anovaWoSRB, style = "rmarkdown", caption = "ANOVA after removing stimulus repetition trials", split.table = "Inf", missing=NA)
+# 
+# 
+# woSRBinter <- ggplot(Exp8woSRB_Agg, aes(x=Saliency, y=RT_io,color = Validity))+
+#     geom_line(aes(group = Validity, linetype = Validity),size = 1,stat = "summary", fun = "mean",)+
+#     geom_point(stat = "summary", fun = "mean", aes(shape = Validity))+
+#   scale_color_manual(values = c("deepskyblue4","cadetblue3"))+coord_cartesian(ylim = c(550,650))+
+#   theme_classic()+ylab("ReactionTime (in ms)")+ggtitle("Interaction of Validity and Saliency after removing the binding trials")
+# woSRBinter
+# #ggsave(filename = here("Figures","woSRBinteraction.png"),woSRBinter)
+```
+
+### Multi level model
+
+Check other memo titled "Exp8-mlm.html"
+
+# Exploratory Analyses
+
+This exploratory analysis involves the factors of contingency awareness from the guessing trials and the awareness questionnaire responses
+
+## 1. Block Analysis
+
+
+The plot shows that after te first block the participants tend to pick up on the learning and show a pattern of larger validity effect for salient trials. But there is also a strong reversal of pattern for nonsalient trials.
+
+```{r block, warning=FALSE, message=FALSE}
+
+Exp8agg_B_o <- aggregate(data = Exp8data, RT_io~participant+Validity+Saliency+BlockCount, subset = (Condition == "SingleD"), mean)
+
+
+##Anova with Blocks ## EZANOVA error
+# anova_t_block <- ezANOVA(data = Exp8agg_B_o,
+#         dv = RT_io,
+#         wid = participant,
+#         within = .(Saliency,Validity,BlockCount),
+#         detailed = TRUE)
+# panderOptions('table.split.table',300)
+# pander(anova_t_block, style = 'rmarkdown', caption = "ANOVA results: with BlockCount", split.table = "Inf", missing = NA)
+
+
+interBlock <- ggplot(Exp8agg_B_o, aes(x=Saliency, y=RT_io,color = Validity))+
+    geom_line(aes(group = Validity, linetype = Validity),size = 1,stat = "summary", fun = "mean",)+
+    geom_point(stat = "summary", fun = "mean", aes(shape = Validity))+
+  scale_color_manual(values = c("deepskyblue4","cadetblue3"))+facet_grid(.~BlockCount)+
+  theme_classic()+ylab("Reaction Time in ms")+ggtitle("Interaction of Validity and Saliency per Block")
+interBlock
+
+#ggsave(filename = here("Figures","InteractionperBlock.png"), interBlock)
+
+```
+

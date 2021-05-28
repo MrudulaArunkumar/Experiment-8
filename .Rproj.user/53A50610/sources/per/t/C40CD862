@@ -3,7 +3,7 @@
     "path": "D:/PhD/Experiments/Exp8/Analysis/scripts/Exp8 Analysis.Rmd",
     "project_path": "scripts/Exp8 Analysis.Rmd",
     "type": "r_markdown",
-    "hash": "322105360",
+    "hash": "505617747",
     "contents": "",
     "dirty": false,
     "created": 1622130463353.0,
@@ -12,15 +12,19 @@
     "properties": {
         "source_window_id": "",
         "Source": "Source",
-        "cursorPosition": "473,0",
-        "scrollLine": "450"
+        "cursorPosition": "89,0",
+        "scrollLine": "67",
+        "docOutlineVisible": "1",
+        "rmdVisualMode": "false",
+        "rmdVisualWrapConfigured": "true",
+        "rmdVisualModeLocation": "24184:10852"
     },
     "folds": "",
-    "lastKnownWriteTime": 1622131346,
+    "lastKnownWriteTime": 1622211780,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1622131346714,
+    "last_content_update": 1622211780954,
     "read_only": false,
     "read_only_alternatives": []
 }
