@@ -6,24 +6,25 @@ library(plyr)
 library(lme4)
 library(tidyverse)
 library(here)
+library(lmerTest)
 
   #+++++++++++++++++++++++++++++++++++####
   #MULTILEVEL ANALYSIS####
   #+++++++++++++++++++++++++++++++++++++++
   
    
-raw.data<-read.csv(here("Data", "Exp8_partialdataset.csv"))
+raw.data<-read.csv(here("Data", "DataforMLM.csv"))
    
 
 #create numerical var for response type
-
-raw.data$previous_rm<-ifelse(raw.data$ResponseType=="RR", 1, 2)
-table(raw.data$ResponseType, raw.data$previous_rm)
+raw.data$previous_rm <- NA
+raw.data$previous_rm<-ifelse(raw.data$ResponseRel=="RR", 1, 2)
+table(raw.data$ResponseRel, raw.data$previous_rm)
 
 
 #limit analyses to testtrials only ####
 table(raw.data$Condition)
-raw.data<-subset(raw.data, subset = (raw.data$Condition=="test"))
+raw.data<-subset(raw.data, subset = (raw.data$Condition=="SingleD"))
 
 #limit analyses to test trials whose last occurrence was a learning trial
 raw.data<-subset(raw.data, subset = (raw.data$Distance_type==1))
@@ -100,6 +101,7 @@ randomSlopes_m1<-lmer(RT_io~1+val*sal + (1+val*sal|participant),
                       na.action = "na.omit")
 
 summary(randomSlopes_m1)
+### tvalue of val:sal is larger than 2, perhaps signficant ###
 
 #Check Richtung der Interaktion (kann man sich "simple slopes" auch f?r MLM anzeigen lassen?) -  validity effect should occur only for salient D, not for nonsalient D -> works
 # salientD<-subset(raw.data, subset = (raw.data$sal==1))
@@ -146,8 +148,8 @@ summary(randomSlopes_m1_err)
 # 
 # #Will Interaction survive once we control for binding & retrieval effects?
 # #previous_response match, distance, as main effects
-# randomSlopes_m2<-lmer(RT_io~1+val*sal + previous_rm_cwp+ Distance_cwp  +(1+val*sal + previous_rm_cwp + Distance_cwp + Distance_type_cwp|participant), 
-#                       data=raw.data, 
+# randomSlopes_m2<-lmer(RT_io~1+val*sal + previous_rm_cwp+ Distance_cwp  +(1+val*sal + previous_rm_cwp + Distance_cwp + Distance_type_cwp|participant),
+#                       data=raw.data,
 #                       REML=F,
 #                       na.action = "na.omit")
 # 

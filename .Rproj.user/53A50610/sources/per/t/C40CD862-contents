@@ -36,10 +36,10 @@ library(lmerTest)
 
 #set_here()
 
-Exp8data <- read.csv(here("Data", "Exp8_partialdataset.csv"))
+Exp8data <- read.csv(here("Data", "Exp8_fulldataset.csv"))
 Exp8data$participant <- as.factor(Exp8data$participant)
 #Exp8data <- Exp8data%>%group_by(participant)%>%fill(participant,.direction = "up")
-table(Exp8data$participant)
+#table(Exp8data$participant)
 ##exploratory removing participants with average performance
 `%notin%` <- Negate(`%in%`)
 
@@ -172,7 +172,7 @@ pander(summary(Exp8data$RT_io), style = 'rmarkdown', caption = "Summary of RT af
 #Exp8multiple_agg <- aggregate(data = Exp8data, RT_ifo~participant+Validity,mean)
 
 Exp8multiple_agg_o <- aggregate(data = Exp8data, RT_io~participant+Validity,mean)
-sum(is.na(Exp8data$RT_io))
+#sum(is.na(Exp8data$RT_io))
 
 #for farouts
 #pander(aggregate(data = Exp8multiple_agg, RT_ifo~Validity,mean), style = "rmarkdown", caption = "Table containing means of valid and invalid learn trials, farouts excluded")
@@ -634,8 +634,11 @@ This is then compared with the participants' responses in the Questionnaire at t
 #if learnguess salient is high label those participants as learnAware. To be used to check if they correlate with the AwareQ responses of those participants
 CA_Summary <- CA_Summary %>%
   mutate(SalAwarenessMS = ifelse(Saliency == "Salient" & MeanAcc > 50, "Aware", "Notaware"))
-pander((table(CA_Summary$SalAwareness)),style = "rmarkdown")
+pander((table(CA_Summary$SalAwarenessMS)),style = "rmarkdown")
+
 Exp8agg_A_o <- merge(Exp8agg_o, CA_Summary, by = "participant")
+Exp8agg_A_ER <- merge(Exp8agg_ER,CA_Summary, by = "participant")
+Exp8agg_A_IES <- merge(Exp8agg_IES_o, CA_Summary, by = "participant")
 #creating df that contains both performances
 BothAware <- CA_Summary%>%filter(Saliency == "Salient")
 BothAware <- merge(BothAware, A_Summary, by = "participant")
@@ -670,6 +673,9 @@ To further evaluate how this awareness knowledge influences the interaction, a n
 ##selecting pps who show both awareness in trials and questions
 
 Exp8agg_A_o <- merge(Exp8agg_A_o,A_Summary,by = "participant")
+Exp8agg_A_ER <- merge(Exp8agg_A_ER,A_Summary,by = "participant")
+Exp8agg_A_IES <- merge(Exp8agg_A_IES, A_Summary, by = "participant")
+
 Exp8agg_A_o <- Exp8agg_A_o%>%
   dplyr::rename(SalientGuessTrials = SalAwarenessMS,
                 SaliencyAwareQuestion = SalQAware)
@@ -679,9 +685,30 @@ Exp8agg_A_o <- Exp8agg_A_o %>%
                                         ifelse(SalientGuessTrials == "Notaware" & SaliencyAwareQuestion == 1, "QuestionAwareness Not guess",
                                                ifelse(SalientGuessTrials == "Notaware" & SaliencyAwareQuestion == 0,"NoAwareness",NA)))))
 
+Exp8agg_A_ER <- Exp8agg_A_ER%>%
+  dplyr::rename(SalientGuessTrials = SalAwarenessMS,
+                SaliencyAwareQuestion = SalQAware)
+Exp8agg_A_ER <- Exp8agg_A_ER %>%
+  mutate(AwarenessMatch = ifelse(SalientGuessTrials == "Aware" & SaliencyAwareQuestion == 1, "CompleteAwareness", 
+                                 ifelse(SalientGuessTrials == "Aware" & SaliencyAwareQuestion == 0,"GuessAwareness Not Question",
+                                        ifelse(SalientGuessTrials == "Notaware" & SaliencyAwareQuestion == 1, "QuestionAwareness Not guess",
+                                               ifelse(SalientGuessTrials == "Notaware" & SaliencyAwareQuestion == 0,"NoAwareness",NA)))))
+
+Exp8agg_A_IES <- Exp8agg_A_IES%>%
+  dplyr::rename(SalientGuessTrials = SalAwarenessMS,
+                SaliencyAwareQuestion = SalQAware)
+Exp8agg_A_IES <- Exp8agg_A_IES %>%
+  mutate(AwarenessMatch = ifelse(SalientGuessTrials == "Aware" & SaliencyAwareQuestion == 1, "CompleteAwareness", 
+                                 ifelse(SalientGuessTrials == "Aware" & SaliencyAwareQuestion == 0,"GuessAwareness Not Question",
+                                        ifelse(SalientGuessTrials == "Notaware" & SaliencyAwareQuestion == 1, "QuestionAwareness Not guess",
+                                               ifelse(SalientGuessTrials == "Notaware" & SaliencyAwareQuestion == 0,"NoAwareness",NA)))))
+
 ```
 
 ### 4. ANOVA using AwarenessMatch as a factor
+
+
+#### with RT
 
 There is a main effect of saliency $F = 7.72, p = .006$ and a significant interaction between saliency and validity $F = 7.313, p = .008$. Interestingly there is also a significant 3-way interaction with awareness and saliency and validity $F = 10.69, p < .001$ which was absent in Experiment 7. 
 
@@ -724,6 +751,48 @@ pander(mean_valEffectA_o, style = "rmarkdown", caption = "Validity Effect for sa
 
 ```
 
+#### with ER
+
+
+```{r awareErr, message=FALSE, warning=FALSE}
+
+anova_VSAer_o <- ezANOVA(data = Exp8agg_A_ER,
+        dv = ErrorRate,
+        wid = participant,
+        within = .(Saliency.x,Validity),
+        between = .(AwarenessMatch),
+        detailed = TRUE)
+panderOptions('table.split.table',300)
+pander(anova_VSAer_o)
+
+awareInterG_ER <- ggplot(Exp8agg_A_ER, aes(x=Saliency.x, y=ErrorRate,color = Validity))+
+    geom_line(aes(group = Validity, linetype = Validity),size = 1,stat = "summary", fun = "mean",)+
+    geom_point(stat = "summary", fun = "mean", aes(shape = Validity))+
+  scale_color_manual(values = c("deepskyblue4","cadetblue3"))+facet_grid(.~AwarenessMatch, labeller = label_wrap_gen(width = 10))+xlab("Saliency")+
+  theme_classic()+ylab("Error Rate")+ggtitle("Interaction of Validity and Saliency \n between participants with and without awareness")
+awareInterG_ER
+
+
+```
+### with IES
+
+```{r awreIES, warning=FALSE, message=FALSE}
+anova_VSAIES_o <- ezANOVA(data = Exp8agg_A_IES,
+        dv =IES,
+        wid = participant,
+        within = .(Saliency.x,Validity),
+        between = .(AwarenessMatch),
+        detailed = TRUE)
+panderOptions('table.split.table',300)
+pander(anova_VSAIES_o)
+
+awareInterG_IES <- ggplot(Exp8agg_A_IES, aes(x=Saliency.x, y=IES,color = Validity))+
+    geom_line(aes(group = Validity, linetype = Validity),size = 1,stat = "summary", fun = "mean",)+
+    geom_point(stat = "summary", fun = "mean", aes(shape = Validity))+
+  scale_color_manual(values = c("deepskyblue4","cadetblue3"))+facet_grid(.~AwarenessMatch, labeller = label_wrap_gen(width = 10))+xlab("Saliency")+
+  theme_classic()+ylab("Error Rate")+ggtitle("Interaction of Validity and Saliency \n between participants with and without awareness")
+awareInterG_IES
+```
 
 
 ```{r ttestaware, eval=FALSE}
@@ -788,6 +857,25 @@ pander(mean_awareQ_o, style = "rmarkdown", title = "Validity effect(invalid-vali
 
 # MULTI LEVEL MODELLING
 
+```{r include=FALSE}
+
+#compute new vars####
+  #compute new numeric var for validity effect
+  Exp8data$val <-ifelse(Exp8data$Validity=="valid",1,-1)
+  table(Exp8data$val, Exp8data$Validity)
+
+  table(Exp8data$val, Exp8data$Condition)
+
+  #numeric var for saliency
+  Exp8data$sal<-ifelse(Exp8data$Saliency=="Salient",1,
+                       ifelse(Exp8data$Saliency=="NonSalient", -1, NA))
+
+  table(Exp8data$Saliency, Exp8data$sal)
+
+
+```
+
+
 ## 7. Previous Occurence Analysis (Distance & Response Type)
 
 Computing a new column that contains the last time/number of trials ago the previous occurrence occurred.
@@ -802,29 +890,51 @@ The conditions used to satisfy this last occurrence are:
 
 ```{r prevocc, eval = FALSE, message=FALSE, warning=FALSE}
 
-# Exp8data <- Exp8data%>%select(Condition, SalD,NSalD,Saliency,Validity, everything())
-# 
-# ###first is to find out the trials where the previous occurence wa the immediate previous one
-# Exp8data$Distance <- NA
-# Exp8data <- Exp8data%>%select(Distance,ACC_trials,everything())
-# Exp8data <- Exp8data%>%
-#   mutate(Distance = ifelse((lag(Condition,1)=="test" | lag(Condition,1) == "learn")& 
-#               (lag(SalD,1)== SalD|lag(NSalD,1)==NSalD) &
-#                             lag(participant,1)==participant &
-#                             lag(ACC_trials,1)== 1, 1, Distance))
-# 
-# #The number of immediate previous occurences
-# pander(table(Exp8data$Distance), style = 'rmarkdown', caption = "Table showing the number of immediate previous occurence")
-# 
-# ## Now to look at other distances of the last occurrence beyond the immediately preceding one
-# lagvalue <- 2:20
-# 
-# for(j in lagvalue){
-#   Exp8data <- Exp8data %>% 
-#     mutate(Distance = ifelse((lag(Condition,j)=="learn"|lag(Condition,j)=="test") &                     (lag(SalD,j)==SalD|lag(NSalD,j)==NSalD) & lag(participant,j)==participant & lag(ACC_trials,j)== 1 & is.na(Distance)==TRUE, j, Distance))
-# }
-# 
-# pander(table(Exp8data$Distance), style = 'rmarkdown', caption = "Table showing the number of total previous occurences and how far each of them are")
+Exp8data <- Exp8data%>%select(Condition, SalD,NSalD,Saliency,Validity, everything())
+
+###first is to find out the trials where the previous occurence wa the immediate previous one
+Exp8data$Distance <- NA
+Exp8data <- Exp8data%>%select(Distance,ACC_trials,everything())
+Exp8data <- Exp8data%>%
+  mutate(Distance = ifelse((lag(Condition,1)=="SingleD" | lag(Condition,1) == "MultipleD")&
+              (lag(SalD,1)== SalD|lag(NSalD,1)==NSalD) &
+                            lag(participant,1)==participant &
+                            lag(ACC_trials,1)== 1, 1, Distance))
+
+#The number of immediate previous occurences
+pander(table(Exp8data$Distance), style = 'rmarkdown', caption = "Table showing the number of immediate previous occurence")
+
+## Now to look at other distances of the last occurrence beyond the immediately preceding one
+lagvalue <- 2:20
+
+for(j in lagvalue){
+  Exp8data <- Exp8data %>%
+    mutate(Distance = ifelse((lag(Condition,j)=="MultipleD"|lag(Condition,j)=="SingleD") &                     (lag(SalD,j)==SalD|lag(NSalD,j)==NSalD) & lag(participant,j)==participant & lag(ACC_trials,j)== 1 & is.na(Distance)==TRUE, j, Distance))
+}
+
+pander(table(Exp8data$Distance), style = 'rmarkdown', caption = "Table showing the number of total previous occurences and how far each of them are")
+
+
+##code trial type for previous distance: learn trial = 1, test trial=2
+  Exp8data$Distance_type<-NA
+  Exp8data <- Exp8data%>%
+    mutate(Distance_type = ifelse(Distance==1 & lag(Condition,1)=="MultipleD",1,
+                                  ifelse(Distance==1 &lag(Condition,1)=="SingleD", 2, Distance_type)))
+
+  table(Exp8data$Distance_type)
+  Exp8data <- Exp8data%>%
+    select(Distance, Distance_type, Condition, everything())
+
+  #code for nonimmediate distances
+  for (j in lagvalue){
+    Exp8data <- Exp8data%>%
+      mutate(Distance_type = ifelse(Distance==j & lag(Condition,j)=="MultipleD", 1,
+                                    ifelse(Distance==j &lag(Condition,j)=="SingleD", 2, Distance_type)))
+    }
+```
+
+
+```{r}
 
 ```
 
@@ -836,16 +946,18 @@ Coding what the previous Response was, whether it was the same or different. Thi
 
 ```{r disttype, eval=FALSE, message=FALSE, warning=FALSE}
 
-# Exp8data$ResponseRel <- NA
-# 
-# 
-# Exp8data <- Exp8data %>% 
-#   mutate(ResponseRel = ifelse((lag(Condition,1)=="learn" | lag(Condition,1)=="test") & lag(participant,1)==participant & lag(CorrectAnswer,1)== CorrectAnswer & is.na(ResponseRel)==TRUE, "RR", ifelse((lag(Condition,1)=="learn"|lag(Condition,1)=="test") & lag(participant,1)==participant & lag(CorrectAnswer,1)!= CorrectAnswer & is.na(ResponseRel)==TRUE, "RC", ResponseRel)))
-# 
-# 
-# pander(table(Exp8data$ResponseRel),style = 'rmarkdown', caption = "Total number of RRs and RCs")
-# 
-# Exp8data <- Exp8data%>%select(ResponseRel, everything())
+Exp8data$ResponseRel <- NA
+
+
+Exp8data <- Exp8data %>%
+  mutate(ResponseRel = ifelse((lag(Condition,1)=="MultipleD" | lag(Condition,1)=="SingleD") & lag(participant,1)==participant & lag(CorrectAnswer,1)== CorrectAnswer & is.na(ResponseRel)==TRUE, "RR", ifelse((lag(Condition,1)=="MultipleD"|lag(Condition,1)=="SingleD") & lag(participant,1)==participant & lag(CorrectAnswer,1)!= CorrectAnswer & is.na(ResponseRel)==TRUE, "RC", ResponseRel)))
+
+
+pander(table(Exp8data$ResponseRel),style = 'rmarkdown', caption = "Total number of RRs and RCs")
+
+Exp8data <- Exp8data%>%select(ResponseRel, everything())
+
+#write.csv(file = here("Data","DataforMLM.csv"),Exp8data)
 
 ```
 
@@ -864,26 +976,27 @@ The conditions used to determine this variable are:
 So essentially, OvershadowSRB tells about the saliency of the test trial (replacing the Saliency factor in the main data)
 
 ```{r overSRB, eval = FALSE,message=FALSE, warning=FALSE}
-# Exp8data$ProbeSaliency <- NA
-# 
-# Exp8data <- Exp8data%>%select(ProbeSaliency, everything())
-# Exp8data <- Exp8data %>%
-#   mutate(ProbeSaliency = ifelse((Condition == "test" & lag(Condition,1) == "learn") &
-#            lag(SalD,1) == SalD & lag(participant,1)==participant & lag(ACC_trials,1)==1, 1,ProbeSaliency))
-# 
-# Exp8data <- Exp8data %>%
-#   mutate(ProbeSaliency = ifelse((Condition == "test" & lag(Condition,1) == "learn") &
-#            lag(NSalD,1)==NSalD & lag(participant,1)==participant & lag(ACC_trials,1)==1 & is.na(ProbeSaliency) == TRUE,2,ProbeSaliency))
-# 
-# 
-# table(Exp8data$ProbeSaliency)
-# Exp8data<- Exp8data%>%select(CorrectAnswer, everything())
-# ##creating a dataframe that has only Binding trials preceding with learn 
-# Exp8_OverSRB <- Exp8data %>%
-#   subset(ProbeSaliency %in% c('1','2'))
-# 
-# Exp8_OverSRB<- Exp8_OverSRB%>%select(CorrectAnswer, everything())
-# #table(Exp8_OverSRB$ProbeSaliency,Exp8_OverSRB$ResponseRel)
+
+Exp8data$ProbeSaliency <- NA
+
+Exp8data <- Exp8data%>%select(ProbeSaliency, everything())
+Exp8data <- Exp8data %>%
+  mutate(ProbeSaliency = ifelse((Condition == "test" & lag(Condition,1) == "learn") &
+           lag(SalD,1) == SalD & lag(participant,1)==participant & lag(ACC_trials,1)==1, 1,ProbeSaliency))
+
+Exp8data <- Exp8data %>%
+  mutate(ProbeSaliency = ifelse((Condition == "test" & lag(Condition,1) == "learn") &
+           lag(NSalD,1)==NSalD & lag(participant,1)==participant & lag(ACC_trials,1)==1 & is.na(ProbeSaliency) == TRUE,2,ProbeSaliency))
+
+
+table(Exp8data$ProbeSaliency)
+Exp8data<- Exp8data%>%select(CorrectAnswer, everything())
+##creating a dataframe that has only Binding trials preceding with learn
+Exp8_OverSRB <- Exp8data %>%
+  subset(ProbeSaliency %in% c('1','2'))
+
+Exp8_OverSRB<- Exp8_OverSRB%>%select(CorrectAnswer, everything())
+#table(Exp8_OverSRB$ProbeSaliency,Exp8_OverSRB$ResponseRel)
 ```
 
 #### ANOVA: interaction between Response Type and Saliency for binding trials

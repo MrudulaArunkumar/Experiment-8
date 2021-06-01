@@ -635,7 +635,10 @@ This is then compared with the participants' responses in the Questionnaire at t
 CA_Summary <- CA_Summary %>%
   mutate(SalAwarenessMS = ifelse(Saliency == "Salient" & MeanAcc > 50, "Aware", "Notaware"))
 pander((table(CA_Summary$SalAwarenessMS)),style = "rmarkdown")
+
 Exp8agg_A_o <- merge(Exp8agg_o, CA_Summary, by = "participant")
+Exp8agg_A_ER <- merge(Exp8agg_ER,CA_Summary, by = "participant")
+Exp8agg_A_IES <- merge(Exp8agg_IES_o, CA_Summary, by = "participant")
 #creating df that contains both performances
 BothAware <- CA_Summary%>%filter(Saliency == "Salient")
 BothAware <- merge(BothAware, A_Summary, by = "participant")
@@ -670,6 +673,9 @@ To further evaluate how this awareness knowledge influences the interaction, a n
 ##selecting pps who show both awareness in trials and questions
 
 Exp8agg_A_o <- merge(Exp8agg_A_o,A_Summary,by = "participant")
+Exp8agg_A_ER <- merge(Exp8agg_A_ER,A_Summary,by = "participant")
+Exp8agg_A_IES <- merge(Exp8agg_A_IES, A_Summary, by = "participant")
+
 Exp8agg_A_o <- Exp8agg_A_o%>%
   dplyr::rename(SalientGuessTrials = SalAwarenessMS,
                 SaliencyAwareQuestion = SalQAware)
@@ -679,9 +685,30 @@ Exp8agg_A_o <- Exp8agg_A_o %>%
                                         ifelse(SalientGuessTrials == "Notaware" & SaliencyAwareQuestion == 1, "QuestionAwareness Not guess",
                                                ifelse(SalientGuessTrials == "Notaware" & SaliencyAwareQuestion == 0,"NoAwareness",NA)))))
 
+Exp8agg_A_ER <- Exp8agg_A_ER%>%
+  dplyr::rename(SalientGuessTrials = SalAwarenessMS,
+                SaliencyAwareQuestion = SalQAware)
+Exp8agg_A_ER <- Exp8agg_A_ER %>%
+  mutate(AwarenessMatch = ifelse(SalientGuessTrials == "Aware" & SaliencyAwareQuestion == 1, "CompleteAwareness", 
+                                 ifelse(SalientGuessTrials == "Aware" & SaliencyAwareQuestion == 0,"GuessAwareness Not Question",
+                                        ifelse(SalientGuessTrials == "Notaware" & SaliencyAwareQuestion == 1, "QuestionAwareness Not guess",
+                                               ifelse(SalientGuessTrials == "Notaware" & SaliencyAwareQuestion == 0,"NoAwareness",NA)))))
+
+Exp8agg_A_IES <- Exp8agg_A_IES%>%
+  dplyr::rename(SalientGuessTrials = SalAwarenessMS,
+                SaliencyAwareQuestion = SalQAware)
+Exp8agg_A_IES <- Exp8agg_A_IES %>%
+  mutate(AwarenessMatch = ifelse(SalientGuessTrials == "Aware" & SaliencyAwareQuestion == 1, "CompleteAwareness", 
+                                 ifelse(SalientGuessTrials == "Aware" & SaliencyAwareQuestion == 0,"GuessAwareness Not Question",
+                                        ifelse(SalientGuessTrials == "Notaware" & SaliencyAwareQuestion == 1, "QuestionAwareness Not guess",
+                                               ifelse(SalientGuessTrials == "Notaware" & SaliencyAwareQuestion == 0,"NoAwareness",NA)))))
+
 ```
 
 ### 4. ANOVA using AwarenessMatch as a factor
+
+
+#### with RT
 
 There is a main effect of saliency $F = 7.72, p = .006$ and a significant interaction between saliency and validity $F = 7.313, p = .008$. Interestingly there is also a significant 3-way interaction with awareness and saliency and validity $F = 10.69, p < .001$ which was absent in Experiment 7. 
 
@@ -724,6 +751,48 @@ pander(mean_valEffectA_o, style = "rmarkdown", caption = "Validity Effect for sa
 
 ```
 
+#### with ER
+
+
+```{r awareErr, message=FALSE, warning=FALSE}
+
+anova_VSAer_o <- ezANOVA(data = Exp8agg_A_ER,
+        dv = ErrorRate,
+        wid = participant,
+        within = .(Saliency.x,Validity),
+        between = .(AwarenessMatch),
+        detailed = TRUE)
+panderOptions('table.split.table',300)
+pander(anova_VSAer_o)
+
+awareInterG_ER <- ggplot(Exp8agg_A_ER, aes(x=Saliency.x, y=ErrorRate,color = Validity))+
+    geom_line(aes(group = Validity, linetype = Validity),size = 1,stat = "summary", fun = "mean",)+
+    geom_point(stat = "summary", fun = "mean", aes(shape = Validity))+
+  scale_color_manual(values = c("deepskyblue4","cadetblue3"))+facet_grid(.~AwarenessMatch, labeller = label_wrap_gen(width = 10))+xlab("Saliency")+
+  theme_classic()+ylab("Error Rate")+ggtitle("Interaction of Validity and Saliency \n between participants with and without awareness")
+awareInterG_ER
+
+
+```
+### with IES
+
+```{r awreIES, warning=FALSE, message=FALSE}
+anova_VSAIES_o <- ezANOVA(data = Exp8agg_A_IES,
+        dv =IES,
+        wid = participant,
+        within = .(Saliency.x,Validity),
+        between = .(AwarenessMatch),
+        detailed = TRUE)
+panderOptions('table.split.table',300)
+pander(anova_VSAIES_o)
+
+awareInterG_IES <- ggplot(Exp8agg_A_IES, aes(x=Saliency.x, y=IES,color = Validity))+
+    geom_line(aes(group = Validity, linetype = Validity),size = 1,stat = "summary", fun = "mean",)+
+    geom_point(stat = "summary", fun = "mean", aes(shape = Validity))+
+  scale_color_manual(values = c("deepskyblue4","cadetblue3"))+facet_grid(.~AwarenessMatch, labeller = label_wrap_gen(width = 10))+xlab("Saliency")+
+  theme_classic()+ylab("Error Rate")+ggtitle("Interaction of Validity and Saliency \n between participants with and without awareness")
+awareInterG_IES
+```
 
 
 ```{r ttestaware, eval=FALSE}
@@ -862,6 +931,11 @@ pander(table(Exp8data$Distance), style = 'rmarkdown', caption = "Table showing t
       mutate(Distance_type = ifelse(Distance==j & lag(Condition,j)=="MultipleD", 1,
                                     ifelse(Distance==j &lag(Condition,j)=="SingleD", 2, Distance_type)))
     }
+```
+
+
+```{r}
+
 ```
 
 ### Previous Response
