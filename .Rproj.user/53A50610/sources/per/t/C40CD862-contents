@@ -87,9 +87,6 @@ Exp8data$Bonus <- as.integer(Exp8data$Bonus)
 Exp8Bonus <- aggregate(data = Exp8data, Bonus~PROLIFIC_ID, sum)
 Exp8Bonus$Perf <- na.omit(Exp8data$Performance)
 
-#filter erroneous participants
-Exp8data <- Exp8data %>%
-  filter(participant %notin% c(20,70,12))
 
 ###creating a separate df with the contingency awareness
 Exp8_CA <- Exp8data%>%
@@ -106,8 +103,14 @@ Exp8data$ACC_trials <- Exp8data$TargetResp.corr
 
 
 Exp8data$ErrorRate <- 1 - Exp8data$ACC_trials
+Exp8ER <- aggregate(data = Exp8data,ErrorRate~PROLIFIC_ID,mean)
+Exp8RT <- aggregate(data = Exp8data,RT_Trials~PROLIFIC_ID,mean)
 
-
+boxplot(Exp8RT$RT_Trial)
+boxplot(Exp8ER$ErrorRate)
+#filter erroneous participants
+Exp8data <- Exp8data %>%
+  filter(participant %notin% c(20,70,12))
 ```
 
 ## Descriptives
@@ -350,7 +353,7 @@ Valeffectplot
 Exp8agg_ER <- aggregate(data = Exp8data,ErrorRate~participant+Validity+Saliency,subset = (Condition == "SingleD"),mean)
 
 #to check outlier error rate
-Exp8ER <- aggregate(data = Exp8data,ErrorRate~participant,mean)
+Exp8ER <- aggregate(data = Exp8data,ErrorRate~PROLIFIC_ID,mean)
 
 
 
