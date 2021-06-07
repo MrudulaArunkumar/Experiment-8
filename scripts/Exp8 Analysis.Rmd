@@ -56,7 +56,7 @@ The trials are divided as SingleDistractor (SingleD) and MultipleDistractor (Mul
 
 1. The MultipleD trials with both nonsalient and salient letters: for 'left' and 'right' responses
 
-```{r trials, echo=FALSE, out.width="49%", fig.show = "hold", fig.align='center'}
+```{r trials, echo=FALSE, out.width="49%", fig.show = "hold"}
 
 knitr::include_graphics(here("Figures","GX learn.png"))
 knitr::include_graphics(here("Figures","VL learn.png"))
@@ -65,7 +65,7 @@ knitr::include_graphics(here("Figures","VL learn.png"))
 
 2. Salient SingleD trials
 
-```{r salsingled, echo = FALSE,out.width='49%', fig.show='hold',fig.align='center'}
+```{r salsingled, echo = FALSE,out.width='49%', fig.show='hold'}
 
 knitr::include_graphics(here("Figures","G salient.png"))
 knitr::include_graphics(here("Figures","V salient.png"))
@@ -73,7 +73,7 @@ knitr::include_graphics(here("Figures","V salient.png"))
 
 3. NonSalient SingleD trials
 
-```{r nsalsingled, out.width='49%', fig.show='hold',fig.align='center'}
+```{r nsalsingled, echo=FALSE, out.width='49%', fig.show='hold'}
 
 knitr::include_graphics(here("Figures","X nonsalient.png"))
 knitr::include_graphics(here("Figures","L nonsalient.png"))
@@ -88,7 +88,7 @@ knitr::include_graphics(here("Figures","L nonsalient.png"))
 
 > 3 participants had to be removed due to high Error Rate, so N = 67 instead of 70. 
 
-```{r cleaning, include=FALSE, message=FALSE}
+```{r cleaning, include=FALSE, message=FALSE, warning=FALSE}
 #removing unnecessary columns
 Exp8data <- Exp8data %>%
   select(-X,-ConsentKey.keys,-ConsentKey.rt,-Begin.keys,-Begin.rt,-checkresp.corr,-checkresp.keys,-checkresp.rt,-Attention.thisRepN,-Attention.thisTrialN,-Attention.thisN,-Attention.thisIndex,-Attention.ran,-AttnQuestion,-AttnAnswer,-NextStep.keys,-NextStep.rt,-InstRep.ran,-InstRep.thisN,-InstRep.thisTrialN,-InstRep.thisRepN,-InstRep.thisIndex,-PracProceed.keys,-PracProceed.rt,-Prac_loop.thisRepN,-Prac_loop.thisTrialN,-Prac_loop.thisN,-Prac_loop.thisIndex,-Prac_loop.ran,-Exp_proceed.keys,-Exp_proceed.rt,-PracRepeat.ran,-PracRepeat.thisRepN,-PracRepeat.thisN,-PracRepeat.thisIndex,-PracRepeat.thisTrialN,-brkContinue.keys,-PauseResp.keys,-PauseResp.rt, -CA_Proceed.keys,-CA_Proceed.rt,-headstartLearn.thisRepN,-headstartLearn.thisTrialN,-headstartLearn.thisIndex,-headstartLearn.thisN,-headstartLearn.ran,-ExpTrials.ran,-ExpTrials.thisIndex,-CA_trials.thisRepN,-CA_trials.thisN,-CA_trials.thisIndex,-CA_trials.thisTrialN,-CA_trials.ran,-AwareQ_loop.thisRepN,-AwareQ_loop.ran,-AwareQ_loop.thisIndex,-AwareQ_loop.thisTrialN,-todebrief.keys,-Finalend.keys)
@@ -339,7 +339,7 @@ stdInteraction_o
 
 Here is a closer look at the effects, showing the mean difference between valid and invalid in each condition. The effects are not significant for both the salient and nonsalient trials.
 
-```{r meandiff, echo = FALSE, warning=FALSE, results='asis'}
+```{r meandiff, echo = FALSE, warning=FALSE, message=FALSE, results='asis'}
 
 #Mean difference
 mean_valEffect_o <- ezStats(data = Exp8agg_o,
@@ -423,9 +423,9 @@ Exp8test <- Exp8data %>%
 
 Outliers
 
-1.  **with IES as Dependant variable**
+1.  **with IES as Dependent variable**
 
-> There is a significant interaction with validity and saliency and a main effect of saliency with a marginal significance for valdity $F = 3.18, p = .07$
+> There is a significant interaction with validity and saliency and a main effect of saliency with a marginal significance for validity $F = 3.18, p = .07$
 
 The ANOVA results along with the interaction plot are shown below. The mean difference graph is also presented to have a different visualization of the effects.
 
@@ -464,7 +464,7 @@ IESinterplot_o
 
 The plot below shows the mean difference in validity across saliency. Although in this case, both salient and nonsalient trials show a significant validity effect with salient ones having a larger effect
 
-```{r IESplot}
+```{r IESplot, warning=FALSE, message=FALSE}
 meanIES_o <- ezStats(data = Exp8agg_IES_o,
         dv = IES,
         wid = participant,
@@ -558,7 +558,7 @@ Here, we explore the role of insight and awareness and see if participants' abil
   
     5. What response almost always followed "L"? Press the relevant response key ("e" or "u") on the keyboard or press "t" if you do not know.
   
-    6.What response almost always followed "X"? Press the relevant response key ("e" or "u") on the keyboard or press "t" if you do not know.
+    6. What response almost always followed "X"? Press the relevant response key ("e" or "u") on the keyboard or press "t" if you do not know.
 
 ### 1. Guessing trials
 
@@ -673,7 +673,7 @@ Now, let's focus only on the Salient guessing trials as well as questions. So us
 
 This is then compared with the participants' responses in the Questionnaire at the end of the experiment and checked if it matches with their guessing trials' performance.
 
-> Using the median split criteria, 42 participants scored above chance in teh guessing trials that were salient. 
+> Using the median split criteria, 42 participants scored above chance in the guessing trials that were salient. 
 
 ```{r bothaware, echo=FALSE, message=FALSE, warning=FALSE}
 
