@@ -33,6 +33,7 @@ library(ggpubr)
 library(lme4)
 library(nlme)
 library(lmerTest)
+library(car)
 
 #set_here()
 
@@ -327,9 +328,9 @@ pander(anova_VS_o, style = "rmarkdown", title = "ANOVA for test trials(w/o outli
 
 
 
-stdInteraction_o <- ggplot(Exp8agg_o, aes(x=Saliency, y=RT_io,color = Validity))+
-    geom_line(aes(group = Validity, linetype = Validity),size = 1,stat = "summary", fun = "mean",)+
-    geom_point(stat = "summary", fun = "mean", aes(shape = Validity))+
+stdInteraction_o <- ggplot(Exp8agg_o, aes(x=Validity, y=RT_io,color = Saliency))+
+    geom_line(aes(group = Saliency, linetype = Saliency),size = 1,stat = "summary", fun = "mean",)+
+    geom_point(stat = "summary", fun = "mean", aes(shape = Saliency))+
   scale_color_manual(values = c("deepskyblue4","cadetblue3"))+coord_cartesian(ylim = c(500,600))+
   theme_classic()+ylab("ReactionTime (in ms)")+ggtitle("Interaction of Validity and Saliency")
 stdInteraction_o
@@ -346,8 +347,8 @@ mean_valEffect_o <- ezStats(data = Exp8agg_o,
         dv = RT_io,
         wid = participant,
         within_full = .(Saliency,Validity),
-        within = .(Saliency),
-        diff=.(Validity),
+        within = .(Validity),
+        diff=.(Saliency),
         reverse_diff = TRUE)
 
 
@@ -362,10 +363,10 @@ pander(mean_valEffect_o, style = "rmarkdown", caption =  "Validity effect(invali
 
 ##for outliers
 
-Valeffectplot <- ggplot(mean_valEffect_o, aes(x=Saliency, y=Mean,fill = Saliency))+
+Valeffectplot <- ggplot(mean_valEffect_o, aes(x=Validity, y=Mean,fill = Validity))+
     geom_bar(stat = "identity")+
   scale_fill_manual(values = c("cadetblue3","deepskyblue4"))+
-  theme_classic()+ylab("Validity effect (invalid - valid trials) in ms")+ggtitle("Difference between invalid and valid trials")
+  theme_classic()+ggtitle("Difference between nonsalient and salient trials")
 Valeffectplot
 
 #ggsave(filename = here("Figures","Valeffectplot_o.png"),Valeffectplot,width = 6, height = 4)
@@ -392,9 +393,9 @@ pander(anova_t_ER, style = 'rmarkdown', caption = "ANOVA results: ErrorRates in 
 
 # anova_out(anova_t_ER)
 
-errorrateplot <-  ggplot(Exp8agg_ER, aes(x=Saliency, y=ErrorRate,color = Validity))+
-    geom_line(aes(group = Validity, linetype = Validity),size = 1,stat = "summary", fun = "mean",)+
-    geom_point(stat = "summary", fun = "mean", aes(shape = Validity))+
+errorrateplot <-  ggplot(Exp8agg_ER, aes(x=Validity, y=ErrorRate,color =Saliency))+
+    geom_line(aes(group = Saliency, linetype = Saliency),size = 1,stat = "summary", fun = "mean",)+
+    geom_point(stat = "summary", fun = "mean", aes(shape = Saliency))+
   scale_color_manual(values = c("deepskyblue4","cadetblue3"))+coord_cartesian(ylim = c(0,0.15))+
   theme_classic()+ylab("Error Rate")+ggtitle("Interaction of Validity and Saliency with ErrorRate as DV")
 errorrateplot
@@ -607,7 +608,7 @@ CA_Summary <- CA_Summary %>%
 
 CA_Summary$participant <- as.factor(CA_Summary$participant)
 
-pander(table(CA_Summary$Salaware),style = "rmarkdown", caption="People with awareness of contingencies for Salient letters (1)")
+pander(table(CA_Summary$TotalAcc,CA_Summary$Saliency),style = "rmarkdown", caption="Awareness scores for participants for salient and non salient stimuli")
 
 ```
 
@@ -633,6 +634,37 @@ pander(t.test(data = CA_Summary,TotalAcc~Saliency,paired = TRUE), style = "rmark
 
 ```
 
+#### ANOVA with the guessing trials awareness as a continuous variable and a covariate
+
+SHould decide about the sums of squares whether it should be type1, type 2 or type 3
+
+
+```{r}
+Exp8agg_GuessAware_o <- merge(Exp8agg_o, CA_Summary,by=c("participant","Saliency"))
+anovaG_VS <- aov(data = Exp8agg_GuessAware_o, RT_io~Validity*Saliency*TotalAcc)
+
+Anova(anovaG_VS, type = "III")
+summary(anovaG_VS)
+
+
+##For ErrorRate
+Exp8agg_GuessAware_ER <- merge(Exp8agg_ER, CA_Summary,by=c("participant","Saliency"))
+anovaG_VSer <- aov(data = Exp8agg_GuessAware_ER, ErrorRate~Validity*Saliency*TotalAcc)
+
+Anova(anovaG_VSer, type = "III")
+summary(anovaG_VS)
+
+ggplot(Exp8agg_GuessAware_ER, aes(x = TotalAcc, y = ErrorRate,group = Saliency))+
+  geom_jitter(aes(x = TotalAcc, y = ErrorRate, color = Saliency))+stat_smooth(aes(x=TotalAcc, y = ErrorRate, color=Saliency),method = "loess")+
+  facet_grid(.~Validity)+theme_classic()
+# ggscatter(
+#   Exp8agg_GuessAware_ER, x = "TotalAcc", y = "ErrorRate",
+#   facet.by  = c("Saliency", "Validity"), 
+#   short.panel.labs = FALSE
+#   )+
+#   stat_smooth(method = "loess", span = 0.9)
+```
+
 
 ### 2. Awareness Questionnaire
 
@@ -652,6 +684,8 @@ Exp8_CA$AwareResp.corr <- as.numeric(Exp8_CA$AwareResp.corr)
 
 #creating a dataframe dealing with the performance of Awareness Questionnaire.
 AwareQ <- aggregate(data = Exp8_CA, AwareResp.corr~participant+AwareQ_loop.thisN+AwareQ+AwareResp.keys+Solution,mean)
+AwareQ$AccDicho <- ifelse(AwareQ$AwareResp.corr == 2,1,0)
+
 
 AwareQ$SalQAcc <- ifelse(AwareQ$AwareQ_loop.thisN == "2" & AwareQ$AwareResp.corr == 2 | AwareQ$AwareQ_loop.thisN == "3" & AwareQ$AwareResp.corr== 2,1,0)
 
@@ -660,98 +694,85 @@ pander(table(AwareQ$AwareQ,AwareQ$AwareResp.corr), style = "rmarkdown", title = 
 
 A_Summary <- AwareQ %>%
   dplyr::group_by(participant) %>%
-  dplyr::summarise(TotalSalQAcc = sum(SalQAcc, na.rm=TRUE))
+  dplyr::summarise(TotalQAcc = sum(AccDicho, na.rm = TRUE),
+                   MeanQAcc = mean(AccDicho, na.rm = TRUE),
+                  TotalSalQAcc = sum(SalQAcc, na.rm=TRUE))
 
 
 A_Summary$SalQAware <- ifelse(A_Summary$TotalSalQAcc == "2" ,1,0)
-pander(table(A_Summary$SalQAware), style = "rmarkdown", caption = "Number of participants with awareness(1) from the questionnaire")
+pander(table(A_Summary$SalQAware), style = "rmarkdown", caption = "Number of participants with awareness(1) in the salient funnelled questions from the questionnaire")
 ```
+
+#### ANOVA with Awareness QUestions
+
+```{r}
+Exp8agg_QAware_o <- merge(Exp8agg_o, A_Summary,by=c("participant"))
+anovaQ_VS <- aov(data = Exp8agg_QAware_o, RT_io~Validity*Saliency*TotalQAcc)
+
+Anova(anovaQ_VS, type = "III")
+summary(anovaQ_VS)
+
+
+##For ErrorRate
+Exp8agg_QAware_ER <- merge(Exp8agg_ER, A_Summary,by=c("participant"))
+anovaQ_VSer <- aov(data = Exp8agg_QAware_ER, ErrorRate~Validity*Saliency*TotalQAcc)
+
+Anova(anovaQ_VSer, type = "III")
+summary(anovaQ_VS)
+
+ggplot(Exp8agg_QAware_ER, aes(x = TotalQAcc, y = ErrorRate,group = Saliency))+
+  geom_jitter(aes(x = TotalQAcc, y = ErrorRate, color = Saliency))+stat_smooth(aes(x=TotalQAcc, y = ErrorRate, color=Saliency),method = "loess")+
+  facet_grid(.~Validity)+theme_classic()+scale_color_manual(values = c("steelblue1","firebrick3"))
+
+```
+
 
 ### 3. Combining both measures of awareness: guessing trials and questions
 
-Now, let's focus only on the Salient guessing trials as well as questions. So using median split, all the participants with more than 50% accuracy in the guessing learn trials are labelled as **"Aware"** and the others are marked as **"Notaware"**.
+Now, let's focus only on the Salient guessing trials as well as questions. With the combined score of salient questions in both awareness guesisng and questionniare the total comes to 6 (4 guessing trials and 2 questions). The participants with a score more than or equal to 5 are labelled as **"Aware"** and the others are marked as **"Unaware"**.
 
-This is then compared with the participants' responses in the Questionnaire at the end of the experiment and checked if it matches with their guessing trials' performance.
 
-> Using the median split criteria, 42 participants scored above chance in the guessing trials that were salient. 
+
+> 26 people are "aware" with combined accuracy score of 5 or more in the salient questions and guessing trials.
 
 ```{r bothaware, echo=FALSE, message=FALSE, warning=FALSE}
 
 #if learnguess salient is high label those participants as learnAware. To be used to check if they correlate with the AwareQ responses of those participants
-CA_Summary <- CA_Summary %>%
-  mutate(SalAwarenessMS = ifelse(Saliency == "Salient" & MeanAcc > 50, "Aware", "Notaware"))
-pander((table(CA_Summary$SalAwarenessMS)),style = "rmarkdown")
 
-Exp8agg_A_o <- merge(Exp8agg_o, CA_Summary, by = "participant")
-Exp8agg_A_ER <- merge(Exp8agg_ER,CA_Summary, by = "participant")
+Bothaware <- merge(CA_Summary,A_Summary, by = "participant")
+Bothaware <- Bothaware %>%
+  filter(Saliency == "Salient")
+Bothaware$CombinedAcc <- Bothaware$TotalSalQAcc + Bothaware$SalAcc
+Bothaware <- Bothaware %>%
+  mutate(AwarenessLevel = ifelse(CombinedAcc >=5, "Aware", "Not Aware"))
+table(Bothaware$AwarenessLevel)
+
+
+Exp8agg_A_o <- merge(Exp8agg_o, CA_Summary, by = c("participant","Saliency"))
+Exp8agg_A_ER <- merge(Exp8agg_ER,CA_Summary, by = c("participant","Saliency"))
 Exp8agg_A_IES <- merge(Exp8agg_IES_o, CA_Summary, by = "participant")
-#creating df that contains both performances
-BothAware <- CA_Summary%>%filter(Saliency == "Salient")
-BothAware <- merge(BothAware, A_Summary, by = "participant")
-
-plotaware <- BothAware %>%
-  select(c("participant", "TotalAcc","MeanAcc", "SalAwarenessMS","Salaware","SalQAware"))
+Exp8agg_A_o <- merge(Exp8agg_A_o,A_Summary,by = "participant")
+Exp8agg_A_ER <- merge(Exp8agg_A_ER,A_Summary,by = "participant")
+Exp8agg_A_IES <- merge(Exp8agg_A_IES, A_Summary, by = "participant")
+Exp8agg_A_o <- merge(Exp8agg_A_o, Bothaware, by = "participant")
 
 # Exp8agg_A_o <- merge(Exp8agg_o,CA_Summary,by="participant")
 ```
 
-The table below shows the performances in each of the awareness tasks (guessing trials and questionnaire)
 
-```{r tablecomp, results='asis'}
-pander(plotaware, caption = "Showing the participants' Guessing trial and awareness Questionnaire Performance", format = "html", floating.environment = "sidewaystable")
+#### Correlation between awareness at the questions and the guessing trials
 
+```{r}
+cor.test(Exp8agg_A_o$TotalAcc, Exp8agg_A_o$TotalQAcc, method = "pearson")
+
+ggplot(Exp8agg_A_o, aes(x = TotalAcc, y = TotalQAcc))+
+  geom_jitter(aes(x = TotalAcc, y = TotalQAcc), color = "seagreen")+
+  stat_smooth(method = "lm", color = "seagreen")+theme_classic()+xlab("Accuracy score in guessing trials")+ylab("Accuracy score in Questions")+ggtitle("Correlation between both tests of awareness")
 ```
 
-### Using Awareness factors to the main aggregate df and evaluating the influence of insight in the interaction of validity and saliency
 
 
-To further evaluate how this awareness knowledge influences the interaction, a new factor was created *AwarenessMatch* that states the level of awareness the participant had and contains 4 factors:
-
-1.  Complete Awareness: They scored higher than chance in the guessing trials and answered both the awareness questions related to Salient distractors accurately.
-
-2.  Guess Awareness Not question: Show higher accuracy in guess salient trials but did not answer it accurately in the questionnaire
-
-3.  QuestionAwareness Not guess: Answered the salient distractor questions accurately but scored below chance level in the guess trials
-
-4.  No awareness: Did not have higher accuracy in the learn guess trials and no accuracy in the salient questions.
-
-```{r awarefactor, echo=FALSE, message=FALSE, warning=FALSE}
-##selecting pps who show both awareness in trials and questions
-
-Exp8agg_A_o <- merge(Exp8agg_A_o,A_Summary,by = "participant")
-Exp8agg_A_ER <- merge(Exp8agg_A_ER,A_Summary,by = "participant")
-Exp8agg_A_IES <- merge(Exp8agg_A_IES, A_Summary, by = "participant")
-
-Exp8agg_A_o <- Exp8agg_A_o%>%
-  dplyr::rename(SalientGuessTrials = SalAwarenessMS,
-                SaliencyAwareQuestion = SalQAware)
-Exp8agg_A_o <- Exp8agg_A_o %>%
-  mutate(AwarenessMatch = ifelse(SalientGuessTrials == "Aware" & SaliencyAwareQuestion == 1, "CompleteAwareness", 
-                                 ifelse(SalientGuessTrials == "Aware" & SaliencyAwareQuestion == 0,"GuessAwareness Not Question",
-                                        ifelse(SalientGuessTrials == "Notaware" & SaliencyAwareQuestion == 1, "QuestionAwareness Not guess",
-                                               ifelse(SalientGuessTrials == "Notaware" & SaliencyAwareQuestion == 0,"NoAwareness",NA)))))
-
-Exp8agg_A_ER <- Exp8agg_A_ER%>%
-  dplyr::rename(SalientGuessTrials = SalAwarenessMS,
-                SaliencyAwareQuestion = SalQAware)
-Exp8agg_A_ER <- Exp8agg_A_ER %>%
-  mutate(AwarenessMatch = ifelse(SalientGuessTrials == "Aware" & SaliencyAwareQuestion == 1, "CompleteAwareness", 
-                                 ifelse(SalientGuessTrials == "Aware" & SaliencyAwareQuestion == 0,"GuessAwareness Not Question",
-                                        ifelse(SalientGuessTrials == "Notaware" & SaliencyAwareQuestion == 1, "QuestionAwareness Not guess",
-                                               ifelse(SalientGuessTrials == "Notaware" & SaliencyAwareQuestion == 0,"NoAwareness",NA)))))
-
-Exp8agg_A_IES <- Exp8agg_A_IES%>%
-  dplyr::rename(SalientGuessTrials = SalAwarenessMS,
-                SaliencyAwareQuestion = SalQAware)
-Exp8agg_A_IES <- Exp8agg_A_IES %>%
-  mutate(AwarenessMatch = ifelse(SalientGuessTrials == "Aware" & SaliencyAwareQuestion == 1, "CompleteAwareness", 
-                                 ifelse(SalientGuessTrials == "Aware" & SaliencyAwareQuestion == 0,"GuessAwareness Not Question",
-                                        ifelse(SalientGuessTrials == "Notaware" & SaliencyAwareQuestion == 1, "QuestionAwareness Not guess",
-                                               ifelse(SalientGuessTrials == "Notaware" & SaliencyAwareQuestion == 0,"NoAwareness",NA)))))
-
-```
-
-### 4. ANOVA using AwarenessMatch as a factor
+#### ANOVA using AwarenessLevel as a factor
 
 
 #### with RT
@@ -763,8 +784,8 @@ There is a main effect of saliency $F = 6.86, p = .01$ and a significant interac
 anova_VSA_o <- ezANOVA(data = Exp8agg_A_o,
         dv = RT_io,
         wid = participant,
-        within = .(Saliency.x,Validity),
-        between = .(AwarenessMatch),
+        within = .(Saliency,Validity),
+        between = .(AwarenessLevel),
         detailed = TRUE)
 panderOptions('table.split.table',300)
 pander(anova_VSA_o, style = 'rmarkdown', caption = "ANOVA with awareness (RT)",split.table = Inf, missing = NA)

@@ -25,6 +25,8 @@ Data from experiment 8 has already been prepared with the relevant factors such 
 
 4. Validity and Saliency factors were converted to numeric: Valid trials are 1, and invalid and -1 similarly Salient is 1 and nonsalient is -1
 
+5. Only the RTs of SingleD trials were used for analysis
+
 The prepared dataset is saved as  *Exp8_DataforMLM.csv* and is loaded to perform the MLM.
 
 ```{r loadlibsdata, echo=FALSE, message=FALSE, warning=FALSE}
@@ -140,7 +142,7 @@ summary(raw.data$Distance_type) # 1 indicates MultipleD and 2 indicates SingleD
 
 # Multi Level Analysis #
 
-## 1. Model1 - similar to ANOVA data
+## 1. Model 1 - similar to ANOVA data
 
 This model replicates the ANOVa on the aggregated data used in the standard analysis. The factors used are:
 
@@ -237,74 +239,47 @@ summary(randomSlopes_m2_err)
 pander(anova(randomSlopes_m1, randomSlopes_m4), style = "rmarkdown", caption = "Model 1 vs Model 4, RT")
 ```
 
-## 3. Model3 : Without the factors of Validity and Saliency but with the interaction between the binding factors of Distance, ResponseRel and Distance Type
 
-There is an effect of Previous Response in RT and a borderline effect in ER. Results not shown since it is not directlt related to overshadowing
 
-```{r m3, warning=FALSE,message=FALSE}
-# randomSlopes_m3<-lmer(RT_io~1+ previous_rm_cwp*Distance_cwp*Distance_type_cwp +(1 + previous_rm_cwp*Distance_cwp*Distance_type_cwp|participant), 
-#                       data=raw.data, 
-#                       REML=F,
-#                       na.action = "na.omit")
-# 
-# #no interactions are significant but there is a main effect of response relation (t = 2.2)
-# 
-# randomSlopes_m3_err<-lmer(err_trials~1+ previous_rm_cwp*Distance_cwp*Distance_type_cwp +(1 + previous_rm_cwp*Distance_cwp*Distance_type_cwp|participant), 
-#                       data=raw.data, 
-#                       REML=F,
-#                       na.action = "na.omit")
-# 
-# 
-# tab_model(randomSlopes_m3,randomSlopes_m3_err,show.ci = FALSE, show.stat = TRUE, show.aic = TRUE, show.loglik = TRUE)
-# summary(randomSlopes_m3_err)
-# 
-# summary(randomSlopes_m3)
-# #plot_model(randomSlopes_m3, type = "pred", terms = c("previous_rm_cwp","Distance_cwp","Distance_type_cwp"))
-```
+## 3. Model4 : Adding the level 2 interaction factors
 
-## 4. Model4 : Adding the interaction of Validity and Saliency to Model 3
+### with RT
 
 The ValxSal interaction is *almost* significant in RTs and significant in ER. There is a main effect of Previous Response in RTs but not in the ER
 
 ```{r m4, warning=FALSE, message=FALSE}
-randomSlopes_m4<-lmer(RT_io~1+val*sal + previous_rm_cwp*Distance_cwp*Distance_type_cwp +(1+val*sal + previous_rm_cwp*Distance_cwp*Distance_type_cwp|participant), 
+randomSlopes_m4<-lmer(RT_io~1+val*sal*previous_rm_cwp*Distance_cwp+(1+val*sal* previous_rm_cwp*Distance_cwp|participant), 
                       data=raw.data, 
                       REML=F,
                       na.action = "na.omit")
-
-
-
-randomSlopes_m4_err<-lmer(err_trials~1+val*sal + previous_rm_cwp*Distance_cwp*Distance_type_cwp +(1+val*sal + previous_rm_cwp*Distance_cwp*Distance_type_cwp|participant), 
-                      data=raw.data, 
-                      REML=F,
-                      na.action = "na.omit")
-
-
-tab_model(randomSlopes_m4,randomSlopes_m4_err, show.ci = FALSE, show.stat = TRUE, show.aic = TRUE, show.loglik = TRUE)
+tab_model(randomSlopes_m4, show.ci = FALSE, show.stat = TRUE, show.aic = TRUE, show.loglik = TRUE)
 summary(randomSlopes_m4)
+```
+
+### with ER
+
+```{r m4er, warning=FALSE, message=FALSE}
+
+randomSlopes_m4_err<-lmer(err_trials~1+val*sal*previous_rm_cwp*Distance_cwp(1+val*sal*previous_rm_cwp*Distance_cwp|participant), 
+                      data=raw.data, 
+                      REML=F,
+                      na.action = "na.omit")
+
+
+tab_model(randomSlopes_m4_err, show.ci = FALSE, show.stat = TRUE, show.aic = TRUE, show.loglik = TRUE)
 
 summary(randomSlopes_m4_err)
 #RT: val *sal Interaction borderline significant at p = 0.054, t value = 1.9 and PRevious response is significant at 0.03 with tvalue of 2.2
 #Err: val *sal Interaction still significant, in addition, Saliency main effect and borderline validity t = 1.7
 ```
 
-## 5. Model5 : adding the means of Distance and Previous Response also as a factor -- not relevant now
+Summary of model 2 and model 4
 
-### 1. with RT
-
-```{r m5RT, warning=FALSE, message=FALSE}
-# randomSlopes_m5<-lmer(RT_io~1+val*sal + previous_rm_cwp+ Distance_cwp + Distance_type_cwp+
-#                         previous_rm_mean+ Distance_mean + Distance_type_mean+
-#                         (1+val+sal + previous_rm_cwp + Distance_cwp + Distance_type_cwp|participant), 
-#                       data=raw.data, 
-#                       REML=F,
-#                       na.action = "na.omit")
-# tab_model(randomSlopes_m5, show.ci = FALSE, show.stat = FALSE, show.aic = TRUE, show.aicc = TRUE, show.loglik = TRUE)
-# 
-# summary(randomSlopes_m5) # significant val:sal interaction and a main effect of ResponseType
+```{r m2m4rter, warning=FALSE, message=FALSE}
+tab_model(randomSlopes_m2,randomSlopes_m2_err,randomSlopes_m4,randomSlopes_m4_err, show.ci = FALSE, show.stat = TRUE, show.aic = TRUE, show.loglik = TRUE)
 ```
 
-## 6. Intercept Model
+## 4. Intercept Model
 
 ### 1. with RT
 
@@ -343,7 +318,7 @@ tab_model(randomIntercept_m0,randomSlopes_m1, show.ci = FALSE, show.stat = TRUE,
 
 ### Model 1 vs Model 2
 
-Comparing MOdels with only Validity and Saliency (Model 1) vs one where the binding factors of previous response and Distance (Model 2) are introduced. *Error data throws an error*
+Comparing Models with only Validity and Saliency (Model 1) vs one where the binding factors of previous response and Distance (Model 2) are introduced. 
 
 #### RT
 > Model 2 offers a better fit for the data
@@ -359,9 +334,9 @@ pander(anova(randomSlopes_m1_err, randomSlopes_m2_err), style = "rmarkdown", cap
 
 ```
 
-### Model 1 vs Model 4
+### Model 1 vs Model 3
 
-Comparing standard model with model 4 that has the interaction terms of the binding data as well
+Comparing standard model with model 3 that has the interaction terms of the binding data as well
 
 > Model 4 fits better than Model 1
 
@@ -369,7 +344,8 @@ Comparing standard model with model 4 that has the interaction terms of the bind
 pander(anova(randomSlopes_m1, randomSlopes_m4), style = "rmarkdown", caption = "Model 1 vs Model 4, RT")
 pander(anova(randomSlopes_m1_err, randomSlopes_m4_err), style = "rmarkdown", caption = "Model 1 vs Model 4, RT")
 ```
-### Model 2 vs Model 4
+
+### Model 2 vs Model 3
 
 They do not significantly differ.
 
@@ -378,12 +354,3 @@ They do not significantly differ.
 pander(anova(randomSlopes_m4, randomSlopes_m2), style = "rmarkdown", caption = "Model 2 vs Model 4, RT")
 
 ```
-
-
-```{r multiplemodel, warning=FALSE, message=FALSE}
-#pander(anova(randomSlopes_m1, randomSlopes_m2, randomSlopes_m4,randomSlopes_m5), style = "rmarkdown", caption = "comparing multiple models")
-```
-> Model 2 is the best fit, that includes the main factors of Previous Response, Distance and Distance Type
- where the main effect of previous response is significant and there is a *almost* significant effect of Validity Saliency interaction.
- 
- There is an error with the model comparisons for m2 Error so that needs to be checked further.
