@@ -180,6 +180,8 @@ summary(randomSlopes_m1)
 
 ### 2. with ErrorRates
 
+The model with all predictors as random effects is a better fit
+
 ```{r m1er, warning=FALSE, message=FALSE}
 
 #Error rates
@@ -188,15 +190,9 @@ randomSlopes_m1_err<-glmer(err_trials~1+val*sal + (1+val*sal|participant),
                       data=raw.data, 
                       na.action = "na.omit", binomial)
 
-randomSlopes_m1b_err<-glmer(err_trials~1+val*sal + (1|participant), 
-                           data=raw.data, 
-                           na.action = "na.omit", binomial)
-
-hist(raw.data$err_trials)
 
 summary(randomSlopes_m1_err)
-summary(randomSlopes_m1b_err)
-anova(randomSlopes_m1b_err,randomSlopes_m1_err)
+
 tab_model(randomSlopes_m1_err, show.se = TRUE,show.stat = TRUE, show.ci = FALSE,show.aic = TRUE, show.loglik = TRUE, 
                   dv.labels = "Error Rate")
 # significant interaction and significant main effect of saliency for both types of randomslopes 
@@ -204,7 +200,7 @@ tab_model(randomSlopes_m1_err, show.se = TRUE,show.stat = TRUE, show.ci = FALSE,
 plot_model(randomSlopes_m1_err, type = "pred", terms = c("sal", "val[minmax]"))
 ```
 
-## 2. Model2 : Adding Previous Response, Distance and Distance Type as factors
+## 2. Model2 : Adding Previous Response and Distance  as factors
 
 Will the interaction still survive upon adding these factors? It *almost* does for RT, infact becomes stronger upon adding the binding factors.
 and strongly does for ER
@@ -212,7 +208,7 @@ and strongly does for ER
 ### 1. with RT
 
 ```{r m2RT, warning=FALSE, message=FALSE}
-randomSlopes_m2<-lmer(RT_io~1+val*sal + previous_rm_cwp+ Distance_cwp + Distance_type_cwp +(1+val*sal + previous_rm_cwp + Distance_cwp + Distance_type_cwp|participant), 
+randomSlopes_m2<-lmer(RT_io~1+val*sal + previous_rm_cwp+ Distance_cwp +(1+val*sal + previous_rm_cwp + Distance_cwp|participant), 
                       data=raw.data, 
                       REML=F,
                       na.action = "na.omit")
@@ -224,7 +220,7 @@ summary(randomSlopes_m2)
 ### 2. With ER
 
 ```{r m2ER, warning=FALSE, message=FALSE}
-randomSlopes_m2_err<-glmer(err_trials~1+val*sal + previous_rm_cwp+ Distance_cwp + Distance_type_cwp +(1+val*sal + previous_rm_cwp + Distance_cwp + Distance_type_cwp|participant), 
+randomSlopes_m2_err<-glmer(err_trials~1+val*sal + previous_rm_cwp+ Distance_cwp + (1+val*sal + previous_rm_cwp + Distance_cwp|participant), 
                       data=raw.data, 
                       binomial,
                       na.action = "na.omit")
@@ -236,39 +232,39 @@ randomSlopes_m2_err<-glmer(err_trials~1+val*sal + previous_rm_cwp+ Distance_cwp 
 tab_model(randomSlopes_m2_err,randomSlopes_m1_err, show.ci = FALSE, show.p = TRUE, show.stat = TRUE, show.aic = TRUE, show.loglik = TRUE)
 summary(randomSlopes_m2_err)
 # summary(randomSlopes_m2b_err)
-pander(anova(randomSlopes_m1, randomSlopes_m4), style = "rmarkdown", caption = "Model 1 vs Model 4, RT")
+
 ```
 
 
 
-## 3. Model4 : Adding the level 2 interaction factors
+## 3. Model3 : Adding the level 2 interaction factors
 
 ### with RT
 
 The ValxSal interaction is *almost* significant in RTs and significant in ER. There is a main effect of Previous Response in RTs but not in the ER
 
 ```{r m4, warning=FALSE, message=FALSE}
-randomSlopes_m4<-lmer(RT_io~1+val*sal*previous_rm_cwp*Distance_cwp+(1+val*sal* previous_rm_cwp*Distance_cwp|participant), 
+randomSlopes_m3<-lmer(RT_io~1+val*sal*previous_rm_cwp*Distance_cwp+(1+val*sal*previous_rm_cwp*Distance_cwp|participant), 
                       data=raw.data, 
                       REML=F,
                       na.action = "na.omit")
-tab_model(randomSlopes_m4, show.ci = FALSE, show.stat = TRUE, show.aic = TRUE, show.loglik = TRUE)
-summary(randomSlopes_m4)
+tab_model(randomSlopes_m3, show.ci = FALSE, show.stat = TRUE, show.aic = TRUE, show.loglik = TRUE)
+summary(randomSlopes_m3)
 ```
 
 ### with ER
 
 ```{r m4er, warning=FALSE, message=FALSE}
 
-randomSlopes_m4_err<-lmer(err_trials~1+val*sal*previous_rm_cwp*Distance_cwp(1+val*sal*previous_rm_cwp*Distance_cwp|participant), 
+randomSlopes_m3_err<-lmer(err_trials~1+val*sal*previous_rm_cwp*Distance_cwp+(1+val*sal*previous_rm_cwp*Distance_cwp|participant), 
                       data=raw.data, 
                       REML=F,
                       na.action = "na.omit")
 
 
-tab_model(randomSlopes_m4_err, show.ci = FALSE, show.stat = TRUE, show.aic = TRUE, show.loglik = TRUE)
+tab_model(randomSlopes_m3_err, show.ci = FALSE, show.stat = TRUE, show.aic = TRUE, show.loglik = TRUE)
 
-summary(randomSlopes_m4_err)
+summary(randomSlopes_m3_err)
 #RT: val *sal Interaction borderline significant at p = 0.054, t value = 1.9 and PRevious response is significant at 0.03 with tvalue of 2.2
 #Err: val *sal Interaction still significant, in addition, Saliency main effect and borderline validity t = 1.7
 ```
@@ -276,7 +272,7 @@ summary(randomSlopes_m4_err)
 Summary of model 2 and model 4
 
 ```{r m2m4rter, warning=FALSE, message=FALSE}
-tab_model(randomSlopes_m2,randomSlopes_m2_err,randomSlopes_m4,randomSlopes_m4_err, show.ci = FALSE, show.stat = TRUE, show.aic = TRUE, show.loglik = TRUE)
+tab_model(randomSlopes_m2,randomSlopes_m2_err,randomSlopes_m3,randomSlopes_m3_err, show.ci = FALSE, show.stat = TRUE, show.aic = TRUE, show.loglik = TRUE)
 ```
 
 ## 4. Intercept Model
@@ -341,8 +337,8 @@ Comparing standard model with model 3 that has the interaction terms of the bind
 > Model 4 fits better than Model 1
 
 ```{r m1m4, warning=FALSE, message=FALSE}
-pander(anova(randomSlopes_m1, randomSlopes_m4), style = "rmarkdown", caption = "Model 1 vs Model 4, RT")
-pander(anova(randomSlopes_m1_err, randomSlopes_m4_err), style = "rmarkdown", caption = "Model 1 vs Model 4, RT")
+pander(anova(randomSlopes_m1, randomSlopes_m3), style = "rmarkdown", caption = "Model 1 vs Model 4, RT")
+pander(anova(randomSlopes_m1_err, randomSlopes_m3_err), style = "rmarkdown", caption = "Model 1 vs Model 3, RT")
 ```
 
 ### Model 2 vs Model 3
@@ -351,6 +347,6 @@ They do not significantly differ.
 
 ```{r m2m4, warning=FALSE, message=FALSE}
 
-pander(anova(randomSlopes_m4, randomSlopes_m2), style = "rmarkdown", caption = "Model 2 vs Model 4, RT")
+pander(anova(randomSlopes_m3, randomSlopes_m2), style = "rmarkdown", caption = "Model 2 vs Model 3, RT")
 
 ```
