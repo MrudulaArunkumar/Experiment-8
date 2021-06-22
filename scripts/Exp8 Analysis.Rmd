@@ -241,6 +241,8 @@ This analysis checks whether the saliency manipulation worked by comparing the R
 # Exp8SalCheck <- aggregate(data = Exp8data, RT_ifo~participant+Saliency, subset = (Block == "SalMC"), mean)
 Exp8SalCheck_o <- aggregate(data = Exp8data, RT_io~participant+Saliency, subset = (Block == "SalMC"), mean)
 
+pander(aggregate(data = Exp8SalCheck_o, RT_io~Saliency,mean), style = "rmarkdown", caption = "Table containing means of salient and nonsalient, outliers excluded")
+
 # 
 # pander(t.test(RT_ifo~Saliency, data = Exp8SalCheck,paired=TRUE),style = "rmarkdown", caption = "t test result for saliency manipulation")
 
@@ -404,6 +406,8 @@ Valeffectplot
 ##aggregate file for Error Rate with Validity and Saliency
 Exp8agg_ER <- aggregate(data = Exp8data,ErrorRate~participant+Validity+Saliency,subset = (Condition == "SingleD"),mean)
 
+pander(aggregate(data = Exp8agg_ER, ErrorRate~Validity+Saliency,mean))
+
 ##ANOVA
 anova_t_ER <- ezANOVA(data = Exp8agg_ER,
         dv = ErrorRate,
@@ -465,6 +469,9 @@ Exp8agg_IES_o$ZRT <- scale(Exp8agg_IES_o$RT_io)
 Exp8agg_IES_o$ZPC <- scale(Exp8agg_IES_o$ACC_trials)
 Exp8agg_IES_o$BIS <- Exp8agg_IES_o$ZPC - Exp8agg_IES_o$ZRT
 
+
+pander(aggregate(data = Exp8agg_IES_o, IES~Validity+Saliency,mean))
+
 ##with IES
 anova_t_IES_o <- ezANOVA(data = Exp8agg_IES_o,
         dv = IES,
@@ -490,7 +497,7 @@ The plot below shows the mean difference in validity across saliency. Although i
 ```{r IESplot, warning=FALSE, message=FALSE}
 
 meanSalVal_IES <- ezStats(data = Exp8agg_IES_o,
-        dv = RT_io,
+        dv = IES,
         wid = participant,
         within = .(Saliency,Validity))
 meanSalVal_IES$SE <- meanSalVal_IES$SD/sqrt(meanSalVal_IES$N)
@@ -511,7 +518,7 @@ salvalmeanIES <- ggplot(meanSalVal_IES, aes(x=Saliency, y=Mean,fill = Validity))
   geom_errorbar(aes(ymin = Mean - SE, ymax = Mean + SE),width = .1, size = 1,position = position_dodge(.9))+
     # geom_line(aes(group = Saliency, linetype = Saliency),size = 1,stat = "summary", fun = "mean",)+
     # geom_point(stat = "summary", fun = "mean", aes(shape = Saliency))+
-  scale_fill_manual(values = c("steelblue3","cadetblue3"))+coord_cartesian(ylim = c(500,600))+
+  scale_fill_manual(values = c("steelblue3","cadetblue3"))+coord_cartesian(ylim = c(550,700))+
   theme_minimal()+ylab("ReactionTime (in ms)")+ggtitle("Mean of validity trials(IES) across Saliency") 
 salvalmeanIES
 
@@ -629,22 +636,21 @@ Exp8_CA <- Exp8_CA %>%
 
 
 CA_Summary <- Exp8_CA %>%
-  dplyr::group_by(participant,Condition,Saliency) %>%
+  dplyr::group_by(participant) %>%
   dplyr::summarise(TotalAcc = sum(CAResponse_2.corr, na.rm = TRUE),
                    MeanAcc = mean(CAResponse_2.corr, na.rm = TRUE),
                   SalAcc = sum(SalTotalAcc, na.rm = TRUE),
-                  NonSalAcc = sum(NonSalTotalAcc, na.rm = TRUE))%>%
-  drop_na(Condition)
+                  NonSalAcc = sum(NonSalTotalAcc, na.rm = TRUE))
 
 
 CA_Summary$MeanAcc <- 100*CA_Summary$MeanAcc
 
 CA_Summary <- CA_Summary %>%
-  mutate(Salaware = ifelse(Saliency == "Salient"& MeanAcc == 100, 1, 0))
+  mutate(Salaware = ifelse(SalAcc == 4, 1, 0))
 
 CA_Summary$participant <- as.factor(CA_Summary$participant)
-
-pander(table(CA_Summary$TotalAcc,CA_Summary$Saliency),style = "rmarkdown", caption="Awareness scores for participants for salient and non salient stimuli")
+# 
+# pander(table(CA_Summary$participant,CA_Summary$SalAcc),style = "rmarkdown", caption="Awareness scores for participants for salient and non salient stimuli")
 
 ```
 
@@ -676,7 +682,7 @@ pander(t.test(data = CA_Summary,TotalAcc~Saliency,paired = TRUE), style = "rmark
 
 
 ```{r anovaGuess, warning=FALSE, message=FALSE}
-Exp8agg_GuessAware_o <- merge(Exp8agg_o, CA_Summary,by=c("participant","Saliency"))
+Exp8agg_GuessAware_o <- merge(Exp8agg_o, CA_Summary,by=c("participant"))
 anovaG_VS <- aov(data = Exp8agg_GuessAware_o, RT_io~Validity*Saliency*TotalAcc)
 
 pander(Anova(anovaG_VS, type = "III"), style = "rmarkdown", caption = "ANCOVA results with guessing accuracy (type 3 SS)")
@@ -684,15 +690,14 @@ summary(anovaG_VS)
 
 
 ##For ErrorRate
-Exp8agg_GuessAware_ER <- merge(Exp8agg_ER, CA_Summary,by=c("participant","Saliency"))
+Exp8agg_GuessAware_ER <- merge(Exp8agg_ER, CA_Summary,by=c("participant"))
 anovaG_VSer <- aov(data = Exp8agg_GuessAware_ER, ErrorRate~Validity*Saliency*TotalAcc)
 
 pander(Anova(anovaG_VSer, type = "III"), style = "rmarkdown", caption = "ANCOVA results with guessing accuracy (type 3 SS)")
 summary(anovaG_VS)
 
 AcccovarER <- ggplot(Exp8agg_GuessAware_ER, aes(x = TotalAcc, y = ErrorRate,group = Validity))+
-  geom_jitter(aes(x = TotalAcc, y = ErrorRate, color = Validity))+stat_smooth(aes(x=TotalAcc, y = ErrorRate, color=Validity),method = "loess")+scale_color_manual(values = c("steelblue3","firebrick3"))+
-  facet_grid(.~Saliency)+theme_classic()
+  geom_jitter(aes(x = TotalAcc, y = ErrorRate, color = Validity))+stat_smooth(aes(x=TotalAcc, y = ErrorRate, color=Validity),method = "loess")+scale_color_manual(values = c("steelblue3","firebrick3"))+theme_classic()
 AcccovarER
 
 #ggsave(filename = here("Figures","AccCovariateER.png"), AcccovarER)
