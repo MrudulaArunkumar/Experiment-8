@@ -147,6 +147,8 @@ Summary of the overall Reaction Time, accuracy and Error Rate
 
 ```{r descriptives, echo=FALSE,results='asis'}
 
+pander(summary(Exp8data$Age),style = 'rmarkdown', caption = "Age")
+
 pander(summary(Exp8data$RT_Trials), style = 'rmarkdown',caption = 'Mean RT')
 pander(table(Exp8data$ACC_trials),style = 'rmarkdown',caption = "Accuracy")
 
@@ -203,6 +205,7 @@ pander(summary(Exp8data$RT_io), style = 'rmarkdown', caption = "Summary of RT af
 #Exp8multiple_agg <- aggregate(data = Exp8data, RT_ifo~participant+Validity,mean)
 
 Exp8multiple_agg_o <- aggregate(data = Exp8data, RT_io~participant+Validity,mean)
+Exp8multiple_agg_ER <- aggregate(data = Exp8data, ErrorRate~participant+Validity, mean)
 #sum(is.na(Exp8data$RT_io))
 
 #for farouts
@@ -218,7 +221,11 @@ pander(aggregate(data = Exp8multiple_agg_o, RT_io~Validity,mean), style = "rmark
 
 pander((t.test(data = Exp8multiple_agg_o, RT_io~Validity,paired = TRUE)), style = 'rmarkdown', caption = "t test showing differences between valid and invalid trials-excluding outliers")
 
+#for ErrorRate
+pander(aggregate(data = Exp8multiple_agg_ER, ErrorRate~Validity,mean), style = "rmarkdown", caption = "Table containing means of ER for valid and invalid learn trials, outliers excluded")
 
+
+pander((t.test(data = Exp8multiple_agg_ER, ErrorRate~Validity,paired = TRUE)), style = 'rmarkdown', caption = "t test showing differences between valid and invalid trials-Error rate")
 
 valmain <- ggplot(Exp8multiple_agg_o, aes(x=Validity, y=RT_io))+
     geom_line(aes(group = 1, color = "cadetblue4"),size = 1,stat = "summary", fun = "mean",show.legend = FALSE)+
@@ -227,6 +234,17 @@ valmain <- ggplot(Exp8multiple_agg_o, aes(x=Validity, y=RT_io))+
   theme_classic()+ylab("ReactionTime (in ms)")+ggtitle("Mean of valid and invalid trials")
 valmain
 #ggsave(filename = here("Figures","Validity_main.png"),valmain)
+
+
+
+valmainER <- ggplot(Exp8multiple_agg_ER, aes(x=Validity, y=ErrorRate))+
+    geom_line(aes(group = 1, color = "cadetblue4"),size = 1,stat = "summary", fun = "mean",show.legend = FALSE)+
+  geom_point(aes(group = Validity,color = "cadetblue4"),size = 1,stat = "summary", fun = "mean",show.legend = FALSE)+coord_cartesian(ylim = c(0, 0.15))+
+  scale_color_manual(values = c("deepskyblue4"))+
+  theme_classic()+ylab("Error Rate")+ggtitle("Mean of valid and invalid trials")
+valmainER
+#ggsave(filename = here("Figures","Validity_main_ER.png"),valmainER)
+
 ```
 
 ## 2. Saliency Manipulation Check
@@ -243,12 +261,17 @@ Exp8SalCheck_o <- aggregate(data = Exp8data, RT_io~participant+Saliency, subset 
 
 pander(aggregate(data = Exp8SalCheck_o, RT_io~Saliency,mean), style = "rmarkdown", caption = "Table containing means of salient and nonsalient, outliers excluded")
 
+
+Exp8SalCheck_ER <- aggregate(data = Exp8data, ErrorRate~participant+Saliency, subset = (Block == "SalMC"), mean)
+
+pander(aggregate(data = Exp8SalCheck_ER, ErrorRate~Saliency,mean), style = "rmarkdown", caption = "Table containing means of salient and nonsalient, Error Rate")
+
 # 
 # pander(t.test(RT_ifo~Saliency, data = Exp8SalCheck,paired=TRUE),style = "rmarkdown", caption = "t test result for saliency manipulation")
 
 pander(t.test(RT_io~Saliency, data = Exp8SalCheck_o,paired=TRUE),style = "rmarkdown", caption = "t test result for saliency manipulation, outliers")
 
-
+pander(t.test(ErrorRate~Saliency, data = Exp8SalCheck_ER,paired=TRUE),style = "rmarkdown", caption = "t test result for saliency manipulation, ErrorRate")
 
 
 salmain <- ggplot(Exp8SalCheck_o, aes(x=Saliency, y=RT_io, color = "firebrick3"))+
@@ -427,6 +450,25 @@ errorrateplot <-  ggplot(Exp8agg_ER, aes(x=Validity, y=ErrorRate,color =Saliency
 errorrateplot
 #ggsave(filename = here("Figures","ErrorRate.png"),errorrateplot,width=6,height = 4)
 
+
+meanSalVal_ER <- ezStats(data = Exp8agg_ER,
+        dv = ErrorRate,
+        wid = participant,
+        within = .(Saliency,Validity))
+meanSalVal_ER$SE <- meanSalVal_ER$SD/sqrt(meanSalVal_ER$N)
+
+salvalmean_ER <- ggplot(meanSalVal_ER, aes(x=Saliency, y=Mean,fill = Validity))+
+  geom_bar(stat = "identity",position = position_dodge())+
+  geom_errorbar(aes(ymin = Mean - SE, ymax = Mean + SE),width = .1, size = 1,position = position_dodge(.9))+
+    # geom_line(aes(group = Saliency, linetype = Saliency),size = 1,stat = "summary", fun = "mean",)+
+    # geom_point(stat = "summary", fun = "mean", aes(shape = Saliency))+
+  scale_fill_manual(values = c("dodgerblue4","cadetblue3"))+coord_cartesian(ylim = c(0, 0.15))+
+  theme_minimal()+ylab("Error Rate")+ggtitle("Mean of validity trials across Saliency") 
+salvalmean_ER
+
+#ggsave(filename = here("Figures","bargraph_ER_valxsal.png"),salvalmean_ER)
+
+
 ```
 
 The plot also shows the expected pattern, wherein the salient SingleD trials show a larger difference in valid and invalid trials' performances compared to the nonsalient SingleD trials.
@@ -518,7 +560,7 @@ salvalmeanIES <- ggplot(meanSalVal_IES, aes(x=Saliency, y=Mean,fill = Validity))
   geom_errorbar(aes(ymin = Mean - SE, ymax = Mean + SE),width = .1, size = 1,position = position_dodge(.9))+
     # geom_line(aes(group = Saliency, linetype = Saliency),size = 1,stat = "summary", fun = "mean",)+
     # geom_point(stat = "summary", fun = "mean", aes(shape = Saliency))+
-  scale_fill_manual(values = c("steelblue3","cadetblue3"))+coord_cartesian(ylim = c(550,700))+
+  scale_fill_manual(values = c("dodgerblue4","cadetblue3"))+coord_cartesian(ylim = c(550,700))+
   theme_minimal()+ylab("ReactionTime (in ms)")+ggtitle("Mean of validity trials(IES) across Saliency") 
 salvalmeanIES
 
@@ -683,21 +725,27 @@ pander(t.test(data = CA_Summary,TotalAcc~Saliency,paired = TRUE), style = "rmark
 
 ```{r anovaGuess, warning=FALSE, message=FALSE}
 Exp8agg_GuessAware_o <- merge(Exp8agg_o, CA_Summary,by=c("participant"))
-anovaG_VS <- aov(data = Exp8agg_GuessAware_o, RT_io~Validity*Saliency*TotalAcc)
+Exp8agg_GuessAware_o$SalAcc <- (Exp8agg_GuessAware_o$SalAcc/4)*100
+anovaG_VS <- aov(data = Exp8agg_GuessAware_o, RT_io~Validity*Saliency*SalAcc)
 
 pander(Anova(anovaG_VS, type = "III"), style = "rmarkdown", caption = "ANCOVA results with guessing accuracy (type 3 SS)")
 summary(anovaG_VS)
 
+Acccovar <- ggplot(Exp8agg_GuessAware_o, aes(x = SalAcc, y = RT_io,group = Validity))+
+  geom_jitter(aes(x = SalAcc, y = RT_io, color = Validity))+stat_smooth(aes(x=SalAcc, y = RT_io, color=Validity),method = "loess")+scale_color_manual(values = c("dodgerblue4","cadetblue3"))+theme_classic()+xlab("Salient Guessing Trial Accuracy %")+ylab("Reaction Time in ms")
+Acccovar
+#ggsave(filename = here("Figures","AccCovariateRT.png"), Acccovar)
 
 ##For ErrorRate
 Exp8agg_GuessAware_ER <- merge(Exp8agg_ER, CA_Summary,by=c("participant"))
-anovaG_VSer <- aov(data = Exp8agg_GuessAware_ER, ErrorRate~Validity*Saliency*TotalAcc)
+Exp8agg_GuessAware_ER$SalAcc <- (Exp8agg_GuessAware_ER$SalAcc/4)*100
+anovaG_VSer <- aov(data = Exp8agg_GuessAware_ER, ErrorRate~Validity*Saliency*SalAcc)
 
 pander(Anova(anovaG_VSer, type = "III"), style = "rmarkdown", caption = "ANCOVA results with guessing accuracy (type 3 SS)")
 summary(anovaG_VS)
 
-AcccovarER <- ggplot(Exp8agg_GuessAware_ER, aes(x = TotalAcc, y = ErrorRate,group = Validity))+
-  geom_jitter(aes(x = TotalAcc, y = ErrorRate, color = Validity))+stat_smooth(aes(x=TotalAcc, y = ErrorRate, color=Validity),method = "loess")+scale_color_manual(values = c("steelblue3","firebrick3"))+theme_classic()
+AcccovarER <- ggplot(Exp8agg_GuessAware_ER, aes(x = SalAcc, y = ErrorRate,group = Validity))+
+  geom_jitter(aes(x = SalAcc, y = ErrorRate, color = Validity))+stat_smooth(aes(x=SalAcc, y = ErrorRate, color=Validity),method = "loess")+scale_color_manual(values = c("dodgerblue4","cadetblue3"))+theme_classic()+xlab("Salient Guessing trial Accuracy %")+ylab("Error Rate")
 AcccovarER
 
 #ggsave(filename = here("Figures","AccCovariateER.png"), AcccovarER)
@@ -746,25 +794,30 @@ pander(table(A_Summary$SalQAware), style = "rmarkdown", caption = "Number of par
 
 ```{r ancovaques, warning=FALSE, message=FALSE}
 Exp8agg_QAware_o <- merge(Exp8agg_o, A_Summary,by=c("participant"))
-anovaQ_VS <- aov(data = Exp8agg_QAware_o, RT_io~Validity*Saliency*TotalQAcc)
+Exp8agg_QAware_o$TotalSalQAcc <- (Exp8agg_QAware_o$TotalSalQAcc/2)*100
+anovaQ_VS <- aov(data = Exp8agg_QAware_o, RT_io~Validity*Saliency*TotalSalQAcc)
 
 pander(Anova(anovaQ_VS, type = "III"), style = "rmarkdown", caption = "RT: ANCOVA results with questionnaire accuracy (type 3 SS)")
-summary(anovaQ_VS)
 
 
+QuesAcc <- ggplot(Exp8agg_QAware_o, aes(x = TotalSalQAcc, y = RT_io,group = Validity))+
+  geom_jitter(aes(x = TotalSalQAcc, y = RT_io, color = Validity))+stat_smooth(aes(x=TotalSalQAcc, y = RT_io, color=Validity),method = "loess")+theme_classic()+scale_color_manual(values = c("dodgerblue4","cadetblue3"))+xlab("Salient distractor Question Accuracy %")+ylab("Reaction time in ms")
+QuesAcc
+table(Exp8agg_QAware_o$TotalSalQAcc)
+#ggsave(filename = here("Figures","QUestionAcc_RT.png"),QuesAcc)
 ##For ErrorRate
 Exp8agg_QAware_ER <- merge(Exp8agg_ER, A_Summary,by=c("participant"))
-anovaQ_VSer <- aov(data = Exp8agg_QAware_ER, ErrorRate~Validity*Saliency*TotalQAcc)
+Exp8agg_QAware_ER$TotalSalQAcc <- (Exp8agg_QAware_ER$TotalSalQAcc/2)*100
+anovaQ_VSer <- aov(data = Exp8agg_QAware_ER, ErrorRate~Validity*Saliency*TotalSalQAcc)
 
 pander(Anova(anovaQ_VSer, type = "III"), style = "rmarkdown", caption = "ER: ANCOVA results with questionnaire accuracy (type 3 SS)")
 summary(anovaQ_VSer)
 
-QuesAcc <- ggplot(Exp8agg_QAware_ER, aes(x = TotalQAcc, y = ErrorRate,group = Validity))+
-  geom_jitter(aes(x = TotalQAcc, y = ErrorRate, color = Validity))+stat_smooth(aes(x=TotalQAcc, y = ErrorRate, color=Validity),method = "loess")+
-  facet_grid(.~Saliency)+theme_classic()+scale_color_manual(values = c("steelblue3","firebrick3"))
-QuesAcc
+QuesAccER <- ggplot(Exp8agg_QAware_ER, aes(x = TotalSalQAcc, y = ErrorRate,group = Validity))+
+  geom_jitter(aes(x = TotalSalQAcc, y = ErrorRate, color = Validity))+stat_smooth(aes(x=TotalSalQAcc, y = ErrorRate, color=Validity),method = "loess")+theme_classic()+scale_color_manual(values = c("dodgerblue4","cadetblue3"))+xlab("Salient distractor Question Accuracy %")+ylab("Error Rate")
+QuesAccER
 
-#ggsave(filename = here("Figures","QUestionAcc_ER.png"),QuesAcc)
+#ggsave(filename = here("Figures","QUestionAcc_ER.png"),QuesAccER)
 ```
 
 
@@ -779,16 +832,17 @@ Now, let's focus only on the Salient guessing trials as well as questions. With 
 ```{r bothaware, message=FALSE, warning=FALSE}
 
 #if learnguess salient is high label those participants as learnAware. To be used to check if they correlate with the AwareQ responses of those participants
-Bothaware <- CA_Summary %>%
-  filter(Saliency == "Salient")
-Bothaware <- merge(Bothaware,A_Summary, by = "participant")
+
+Bothaware <- merge(CA_Summary,A_Summary, by = "participant")
 
 Bothaware$CombinedAcc <- Bothaware$TotalSalQAcc + Bothaware$SalAcc
+Bothaware$SalAcc <- (Bothaware$SalAcc/4)*100
+Bothaware$TotalSalQAcc <- (Bothaware$TotalSalQAcc/2)*100
+Bothaware$CombinedAcc <- (Bothaware$CombinedAcc/6)*100
 Bothaware <- Bothaware %>%
-  mutate(AwarenessLevel = ifelse(CombinedAcc >=5, "Aware", "Not Aware"))
+  mutate(AwarenessLevel = ifelse(CombinedAcc >=80, "Aware", "Not Aware"))
 pander(table(Bothaware$AwarenessLevel),style = "rmarkdown", caption = "Participants who showed awareness at the salient level")
-Bothaware <- Bothaware %>%
-  select(participant,TotalSalQAcc,TotalQAcc,TotalAcc,CombinedAcc,AwarenessLevel)
+
 
 
 Exp8agg_A_o <- merge(Exp8agg_o, Bothaware, by = c("participant"))
@@ -801,10 +855,10 @@ Exp8agg_A_IES <- merge(Exp8agg_IES_o, Bothaware, by = c("participant"))
 #### Correlation between awareness at the questions and the guessing trials
 
 ```{r awarecorr, warning=FALSE, message=FALSE}
-cor.test(Exp8agg_A_o$TotalAcc, Exp8agg_A_o$TotalQAcc, method = "pearson")
+cor.test(Exp8agg_A_o$SalAcc, Exp8agg_A_o$TotalSalQAcc, method = "pearson")
 
-correlACC <- ggplot(Exp8agg_A_o, aes(x = TotalAcc, y = TotalQAcc))+
-  geom_jitter(aes(x = TotalAcc, y = TotalQAcc), color = "seagreen")+
+correlACC <- ggplot(Exp8agg_A_o, aes(x = SalAcc, y = TotalSalQAcc))+
+  geom_jitter(aes(x = SalAcc, y = TotalSalQAcc), color = "seagreen")+
   stat_smooth(method = "lm", color = "seagreen")+theme_classic()+xlab("Accuracy score in guessing trials")+ylab("Accuracy score in Questions")+ggtitle("Correlation between both tests of awareness")
 correlACC
 
@@ -1071,7 +1125,34 @@ The plot shows that after te first block the participants tend to pick up on the
 
 Exp8agg_B_o <- aggregate(data = Exp8data, RT_io~participant+Validity+Saliency+BlockCount+AwarenessLevel, subset = (Condition == "SingleD"), mean)
 
+blockRT.wide <- Exp8agg_B_o
+blockRT.wide$AwarenessLevel <- as.factor(blockRT.wide$AwarenessLevel)
+blockRT.wide$index <- paste(blockRT.wide$Saliency, blockRT.wide$Validity, blockRT.wide$BlockCount, sep = ".")
+blockRT.wide <- dcast(participant + AwarenessLevel ~ index, data = blockRT.wide, value.var = "RT_io")
 
+outmatrix <- as.matrix(blockRT.wide[, c(3:18)])
+
+myModel <- lm(outmatrix ~ 1 + AwarenessLevel, data = blockRT.wide)
+
+      myFactors <- data.frame(Saliency = c("Nonsalient", "Nonsalient", "Nonsalient", "Nonsalient","Nonsalient","Nonsalient","Nonsalient","Nonsalient","Salient","Salient","Salient","Salient","Salient","Salient","Salient","Salient"),
+                              
+                            Validity = c("invalid","invalid","invalid","invalid","valid","valid","valid","valid"),
+                            Blockcount = c(1,2,3,4))
+      myFactors$Saliency<-factor(myFactors$Saliency)
+      myFactors$Validity<-factor(myFactors$Validity)
+      myFactors$Blockcount <- factor(myFactors$Blockcount)
+      contrasts(myFactors$Saliency)<-c(-1,1)
+      contrasts(myFactors$Validity)<-c(-1,1)
+      contrasts(blockRT.wide$AwarenessLevel)<-c(-1,1)
+      
+      
+      summary(Anova(mod = myModel, 
+                  idata = myFactors, 
+                  idesign = ~ Saliency *Validity* Blockcount, 
+                  type = "III"), 
+            multivariate = F, 
+            univariate = T)
+    
 # ###Anova with Blocks ## EZANOVA error
 # anova_t_block <- ezANOVA(data = Exp8agg_B_o,
 #         dv = RT_io,

@@ -229,7 +229,7 @@ randomSlopes_m2_err<-glmer(err_trials~1+val*sal + previous_rm_cwp+ Distance_cwp 
 #                       data=raw.data, 
 #                       binomial,
 #                       na.action = "na.omit")
-tab_model(randomSlopes_m2_err,randomSlopes_m1_err, show.ci = FALSE, show.p = TRUE, show.stat = TRUE, show.aic = TRUE, show.loglik = TRUE)
+tab_model(randomSlopes_m2_err,randomSlopes_m1_err, show.se = TRUE, show.ci = FALSE, show.p = TRUE, show.stat = TRUE, show.aic = TRUE, show.loglik = TRUE, dv.labels = "Error Rate")
 summary(randomSlopes_m2_err)
 # summary(randomSlopes_m2b_err)
 
@@ -248,7 +248,8 @@ randomSlopes_m3<-lmer(RT_io~1+val*sal*previous_rm_cwp*Distance_cwp+(1+val*sal*pr
                       data=raw.data, 
                       REML=F,
                       na.action = "na.omit")
-tab_model(randomSlopes_m3, show.ci = FALSE, show.stat = TRUE, show.aic = TRUE, show.loglik = TRUE)
+tab_model(randomSlopes_m3, show.se = TRUE, show.p = TRUE, show.ci = FALSE, show.stat = TRUE, show.aic = TRUE, show.loglik = TRUE)
+plot_model(randomSlopes_m3, type = "pred", group.terms = "previous_rm_cwp", terms = c("sal","val[minmax]","Distance_cwp","previous_rm_cwp"))
 summary(randomSlopes_m3)
 ```
 
@@ -262,7 +263,7 @@ randomSlopes_m3_err<-lmer(err_trials~1+val*sal*previous_rm_cwp*Distance_cwp+(1+v
                       na.action = "na.omit")
 
 
-tab_model(randomSlopes_m3_err, show.ci = FALSE, show.stat = TRUE, show.aic = TRUE, show.loglik = TRUE)
+tab_model(randomSlopes_m3_err, show.se = TRUE, show.p = TRUE, show.ci = FALSE, show.stat = TRUE, show.aic = TRUE, show.loglik = TRUE, dv.labels = "Error Rate")
 
 summary(randomSlopes_m3_err)
 #RT: val *sal Interaction borderline significant at p = 0.054, t value = 1.9 and PRevious response is significant at 0.03 with tvalue of 2.2
