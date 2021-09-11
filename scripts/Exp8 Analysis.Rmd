@@ -35,6 +35,7 @@ library(nlme)
 library(lmerTest)
 library(car)
 library(ggdist)
+library(Rmisc) 
 
 #set_here() #done only once and amde sure that that .here file is saved int eh same directory as the script for it to work successfully
 
@@ -78,6 +79,8 @@ knitr::include_graphics(here("Figures","V salient.png"))
 
 knitr::include_graphics(here("Figures","X nonsalient.png"))
 knitr::include_graphics(here("Figures","L nonsalient.png"))
+
+
 ```
 
 
@@ -134,7 +137,7 @@ Exp8data$ErrorRate <- 1 - Exp8data$ACC_trials
 Exp8ER <- aggregate(data = Exp8data,ErrorRate~PROLIFIC_ID,mean)
 Exp8RT <- aggregate(data = Exp8data,RT_Trials~PROLIFIC_ID,mean)
 
-#filter erroneous participants
+#filter erroneous participants above 25%
 Exp8data <- Exp8data %>%
   filter(participant %notin% c(20,70,12))
 ```
@@ -162,7 +165,7 @@ Upon implementing the exclusion criteria
 ```{r exclusions, echo=FALSE, results='asis'}
 #removing the erroneous RTs
 Exp8data$RT_Trials[Exp8data$ACC_trials==0] <- NA
-
+summary(Exp8data$RT_Trials) #1695 NAs, similar % of ER
 
 #creating function to remove the outliers and farouts. This function computes the outlier and farout value
 computeTukeys <- function(x){
@@ -189,6 +192,8 @@ Exp8data$RT_io[Exp8data$RT_io > Exp8data$Outlier|Exp8data$RT_io < 200] <- NA
 #mean of the RTs -- for outlier exclusion and farout exclusion
 pander(summary(Exp8data$RT_ifo), style = 'rmarkdown', caption = "Summary of RT after removing Farouts")
 pander(summary(Exp8data$RT_io), style = 'rmarkdown', caption = "Summary of RT after removing Outliers")
+## 3381 NAs
+round(1686/nrow(Exp8data)*100, digits = 3)
 
 ```
 
@@ -213,12 +218,12 @@ Exp8multiple_agg_ER <- aggregate(data = Exp8data, ErrorRate~participant+Validity
 pander(aggregate(data = Exp8multiple_agg_o, RT_io~Validity,mean), style = "rmarkdown", caption = "Table containing means of valid and invalid learn trials, outliers excluded")
 
 # t test between valid and invalid RTs
-pander((t.test(data = Exp8multiple_agg_o, RT_io~Validity,paired = TRUE)), style = 'rmarkdown', caption = "t test showing differences between valid and invalid trials-excluding outliers")
+pander((t.test(data = Exp8multiple_agg_o, RT_io~Validity,paired = TRUE, alternative = "greater")), style = 'rmarkdown', caption = "t test showing differences between valid and invalid trials-excluding outliers")
 
 #for ErrorRate
 pander(aggregate(data = Exp8multiple_agg_ER, ErrorRate~Validity,mean), style = "rmarkdown", caption = "Table containing means of ER for valid and invalid learn trials, outliers excluded")
 # t test between valid and invalid ERs
-pander((t.test(data = Exp8multiple_agg_ER, ErrorRate~Validity,paired = TRUE)), style = 'rmarkdown', caption = "t test showing differences between valid and invalid trials-Error rate")
+pander((t.test(data = Exp8multiple_agg_ER, ErrorRate~Validity,paired = TRUE, alternative = "greater")), style = 'rmarkdown', caption = "t test showing differences between valid and invalid trials-Error rate")
 
 # plot describing the RTs and ERs of overall valid and invalid trials 
 valmain <- ggplot(Exp8multiple_agg_o, aes(x=Validity, y=RT_io))+
@@ -262,9 +267,9 @@ Exp8SalCheck_ER <- aggregate(data = Exp8data, ErrorRate~participant+Saliency, su
 pander(aggregate(data = Exp8SalCheck_ER, ErrorRate~Saliency,mean), style = "rmarkdown", caption = "Table containing means of salient and nonsalient, Error Rate")
 
 #checking the difference between the saliency conditions
-pander(t.test(RT_io~Saliency, data = Exp8SalCheck_o,paired=TRUE),style = "rmarkdown", caption = "t test result for saliency manipulation, outliers")
+pander(t.test(RT_io~Saliency, data = Exp8SalCheck_o,paired=TRUE, alternative = "greater"),style = "rmarkdown", caption = "t test result for saliency manipulation, outliers")
 
-pander(t.test(ErrorRate~Saliency, data = Exp8SalCheck_ER,paired=TRUE),style = "rmarkdown", caption = "t test result for saliency manipulation, ErrorRate")
+pander(t.test(ErrorRate~Saliency, data = Exp8SalCheck_ER,paired=TRUE, alternative = "greater"),style = "rmarkdown", caption = "t test result for saliency manipulation, ErrorRate")
 
 #plot of saliency manipulation check for RTs
 salmain <- ggplot(Exp8SalCheck_o, aes(x=Saliency, y=RT_io, color = "firebrick3"))+
@@ -295,7 +300,7 @@ anova_VS_fo <- ezANOVA(data = Exp8agg_fo,
                        wid = participant,
                        within = .(Validity, Saliency),type = 3,
                        detailed = TRUE)
-panderOptions('table.split.table',300)
+panderOptions('table.split.table',300) #for more refined presentation of pander anova output
 pander(anova_VS_fo, style = "rmarkdown", caption = "ANOVA for test trials with Validity and Saliency as factors",split.table = Inf, missing = NA)
 
 # aov_VS_fo <- aov(RT_ifo~(Validity*Saliency)+Error(participant/(Validity*Saliency)), data = Exp8agg_fo)
@@ -347,16 +352,17 @@ anova_VS_o <- ezANOVA(data = Exp8agg_o,
                        wid = participant,
                        within = .(Validity, Saliency),
                        detailed = TRUE)
-panderOptions('table.split.table',300)
-pander(anova_VS_o, style = "rmarkdown", title = "ANOVA for test trials(w/o outliers) with Validity and Saliency as factors",split.table = Inf, missing = NA)
 
+panderOptions('table.split.table',300)#for refined presentation of pander anova output
+pander(anova_VS_o, style = "rmarkdown", title = "ANOVA for test trials(w/o outliers) with Validity and Saliency as factors",split.table = Inf, missing = NA)
+anova_out(anova_VS_o)
 
 
 stdInteraction_o <- ggplot(Exp8agg_o, aes(x=Validity, y=RT_io,color = Saliency))+
-    geom_line(aes(group = Saliency, linetype = Saliency),size = 1,stat = "summary", fun = "mean",)+
+    geom_line(aes(group = Saliency, linetype = Saliency),size = 1,stat = "summary", fun = "mean")+
     geom_point(stat = "summary", fun = "mean", aes(shape = Saliency))+
   scale_color_manual(values = c("steelblue3","red3"))+coord_cartesian(ylim = c(500,600))+
-  theme_classic()+ylab("ReactionTime (in ms)")+ggtitle("Interaction of Validity and Saliency")
+  theme_classic()+ylab("ReactionTime (in ms)")+ggtitle("Interaction of Validity and Saliency")+theme(text = element_text(size = 20))
 stdInteraction_o
 #ggsave(filename = here("Figures","interaction_o.png"),stdInteraction_o,width = 6,height = 4)
 
@@ -365,17 +371,30 @@ stdInteraction_o
 Here is a closer look at the effects, showing the mean difference between valid and invalid in each condition. The effects are not significant for both the salient and nonsalient trials.
 
 ```{r meandiff, echo = FALSE, warning=FALSE, message=FALSE, results='asis'}
-library(Rmisc)
-meanSalVal2 <- summarySEwithin(Exp8agg_o, measurevar="RT_io", withinvars=c("Saliency","Validity"),
+# difference scores of CL and significance between salient and nonsalient
+aggwide <- Exp8agg_o %>%
+  group_by(participant,Saliency)%>%
+  mutate(CLeffect = RT_io[Validity == "invalid"]-RT_io[Validity=="valid"])
+aggwide <- aggwide %>%
+  select(-RT_io, - Validity)%>%
+  distinct()
+
+t.test(CLeffect ~ Saliency, data =aggwide, paired=TRUE, alternative="less" )
+
+# to compure paired differences CI to use for the error bars 
+meanSalVal2 <- summarySEwithin(Exp8agg_o, measurevar="RT_io", withinvars=c("Validity","Saliency"),
                                  idvar="participant", na.rm=FALSE, conf.interval=.95)
 
+t<-t.test(RT_io ~ Validity, data =Exp8agg_o, paired=TRUE, alternative="two.sided" )
+t_out(t, d.corr=F)
+t$sdpd <- t$stderr*sqrt(67)
 
-meanSalVal <- ezStats(data = Exp8agg_o,
-        dv = RT_io,
-        wid = participant,
-        within = .(Saliency,Validity))
-meanSalVal$SE <- meanSalVal$SD/sqrt(meanSalVal$N)
-#Mean difference
+tns<-t.test(RT_io ~ Validity, data =Exp8agg_o, subset
+=(Saliency=="NonSalient"), paired=TRUE, alternative="two.sided" )
+t_out(tns, d.corr=F)
+tns$sdpd <- tns$stderr*sqrt(67)
+
+#Mean difference between validity to get the validity effect
 mean_valEffect_o <- ezStats(data = Exp8agg_o,
         dv = RT_io,
         wid = participant,
@@ -388,12 +407,14 @@ mean_valEffect_o <- ezStats(data = Exp8agg_o,
 pander(mean_valEffect_o, style = "rmarkdown", caption =  "Validity effect(invalid-valid) for salient and non salient test trials(outliers)")
 
 
-
-pander(t.test(data = Exp8agg_o, RT_io~Validity, subset = (Saliency == "Salient"), paired = TRUE), style = "rmarkdown", caption = "t test for validity effect for salient trials, outliers")
+# significance of the validity effect
+pander(t.test(data = Exp8agg_o, RT_io~Validity, subset = (Saliency == "Salient"), paired = TRUE, alternative = "greater"), style = "rmarkdown", caption = "t test for validity effect for salient trials, outliers")
 # # 
 # # 
- pander(t.test(data = Exp8agg_o, RT_io~Validity, subset = (Saliency == "NonSalient"), paired = TRUE), style = "rmarkdown", caption = "t test for validity effect for nonsalient trials, outliers")
+pander(t.test(data = Exp8agg_o, RT_io~Validity, subset = (Saliency == "NonSalient"), paired = TRUE, alternative = "greater"), style = "rmarkdown", caption = "t test for validity effect for nonsalient trials, outliers")
 
+#comparing the strength of the contingency effect between the salient and nonsalient
+Exp8aggwide <- reshape(Exp8agg_o, timevar = c("Validity","Saliency"), idvar = "participant", direction = "wide")
 ##for outliers
 
 salvalmean <- ggplot(meanSalVal2, aes(x=Saliency, y=RT_io,fill = Validity))+
@@ -426,7 +447,6 @@ Valeffectplot
 ##aggregate file for Error Rate with Validity and Saliency
 Exp8agg_ER <- aggregate(data = Exp8data,ErrorRate~participant+Validity+Saliency,subset = (Condition == "SingleD"),mean)
 
-pander(aggregate(data = Exp8agg_ER, ErrorRate~Validity+Saliency,mean))
 
 ##ANOVA
 anova_t_ER <- ezANOVA(data = Exp8agg_ER,
@@ -437,7 +457,7 @@ anova_t_ER <- ezANOVA(data = Exp8agg_ER,
 panderOptions('table.split.table',300)
 pander(anova_t_ER, style = 'rmarkdown', caption = "ANOVA results: ErrorRates in test trials", split.table = "Inf", missing = NA)
 
-# anova_out(anova_t_ER)
+anova_out(anova_t_ER)
 
 errorrateplot <-  ggplot(Exp8agg_ER, aes(x=Validity, y=ErrorRate,color =Saliency))+
     geom_line(aes(group = Saliency, linetype = Saliency),size = 1,stat = "summary", fun = "mean",)+
@@ -447,13 +467,9 @@ errorrateplot <-  ggplot(Exp8agg_ER, aes(x=Validity, y=ErrorRate,color =Saliency
 errorrateplot
 #ggsave(filename = here("Figures","ErrorRate.png"),errorrateplot,width=6,height = 4)
 
+#to compute CI for Paired differences to use for the error bars
 meanSalVal_ER2 <- summarySEwithin(Exp8agg_ER, measurevar="ErrorRate", withinvars=c("Saliency","Validity"),
                                  idvar="participant", na.rm=FALSE, conf.interval=.95)
-meanSalVal_ER <- ezStats(data = Exp8agg_ER,
-        dv = ErrorRate,
-        wid = participant,
-        within = .(Saliency,Validity))
-meanSalVal_ER$SE <- meanSalVal_ER$SD/sqrt(meanSalVal_ER$N)
 
 salvalmean_ER <- ggplot(meanSalVal_ER2, aes(x=Saliency, y=ErrorRate
                                             ,fill = Validity))+
@@ -467,10 +483,10 @@ salvalmean_ER
 
 #ggsave(filename = here("Figures","bargraph_ER_valxsal.png"),salvalmean_ER)
 
-pander(t.test(data = Exp8agg_ER, ErrorRate~Validity, subset = (Saliency == "Salient"), paired = TRUE), style = "rmarkdown", caption = "t test for validity effect for salient trials, outliers")
+pander(t.test(data = Exp8agg_ER, ErrorRate~Validity, subset = (Saliency == "Salient"), paired = TRUE, alternative = "greater"), style = "rmarkdown", caption = "t test for validity effect for salient trials, outliers")
 # # 
 # # 
-pander(t.test(data = Exp8agg_ER, ErrorRate~Validity, subset = (Saliency == "NonSalient"), paired = TRUE), style = "rmarkdown", caption = "t test for validity effect for nonsalient trials, outliers")
+pander(t.test(data = Exp8agg_ER, ErrorRate~Validity, subset = (Saliency == "NonSalient"), paired = TRUE, alternative = "greater"), style = "rmarkdown", caption = "t test for validity effect for nonsalient trials, outliers")
 
 
 ```
@@ -488,7 +504,7 @@ The plot also shows the expected pattern, wherein the salient SingleD trials sho
 This [research article](https://link.springer.com/article/10.3758/s13428-018-1076-x#Bib1) talks about these methods in depth
 
 ```{r faroutsies, include=FALSE}
-## create a df that contains both Errorrate and RT
+## create a df that contains only the trials needed for analysis which are the singleD trials
 
 Exp8test <- Exp8data %>%
   subset(Condition == "SingleD")
@@ -505,7 +521,7 @@ The ANOVA results along with the interaction plot are shown below. The mean diff
 ```{r outliersiesbis, echo = FALSE, warning=FALSE, message=FALSE,results='asis'}
 
 ###FOR OUTLIERS
-
+# creating an aggregate with both the RT and ER to be able to compute the IES and BIS
 Exp8agg_IES_o <- aggregate(Exp8test[,c("RT_io","ErrorRate","ACC_trials")], by = list(participant = Exp8test$participant,
                                                                        Validity = Exp8test$Validity,
                                                                        Saliency = Exp8test$Saliency), mean,na.rm = TRUE)
@@ -677,20 +693,27 @@ Exp8_CA$SalTotalAcc <- NA
 Exp8_CA$NonSalTotalAcc <- NA
 
 Exp8_CA <- Exp8_CA %>%
+  group_by(participant,SalD,NSalD)%>%
+  mutate(SalIndex = row_number())%>%
+  ungroup()
+
+Exp8_CA <- Exp8_CA %>%
   mutate(SalTotalAcc = ifelse(Saliency == "Salient" & (CAResponse_2.corr == 1), 1, 0))
 
 Exp8_CA <- Exp8_CA %>%
   mutate(NonSalTotalAcc = ifelse(Saliency == "NonSalient" & (CAResponse_2.corr == 1), 1, 0))
 
+Exp8_CA <- Exp8_CA %>%
+  select(SalD,NSalD,SalIndex,Saliency,CAResponse_2.corr,everything())
 
 CA_Summary <- Exp8_CA %>%
-  dplyr::group_by(participant) %>%
+  dplyr::group_by(participant,SalIndex) %>%
   dplyr::summarise(TotalAcc = sum(CAResponse_2.corr, na.rm = TRUE),
                    MeanAcc = mean(CAResponse_2.corr, na.rm = TRUE),
                   SalAcc = sum(SalTotalAcc, na.rm = TRUE),
                   NonSalAcc = sum(NonSalTotalAcc, na.rm = TRUE))
 
-
+table(Exp8_CA$Saliency,Exp8_CA$SalIndex,Exp8_CA$CAResponse_2.corr)/2
 CA_Summary$MeanAcc <- 100*CA_Summary$MeanAcc
 
 CA_Summary <- CA_Summary %>%
